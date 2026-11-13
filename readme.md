@@ -63,9 +63,19 @@ installation is not required.
 If you use nvm, run these commands from the repository root in each new terminal:
 
 ```sh
-nvm install
+nvm install 22
 nvm use
 node --version
+```
+
+If you'd like to install nvm:
+On windows: (restart VSCode after installing):
+```sh
+winget install -e --id CoreyButler.NVMforWindows
+```
+On macOS/Linux (restart VSCode after installing):
+```sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
 ```
 
 If nvm is unavailable, install Node 22 using your preferred installer or version
