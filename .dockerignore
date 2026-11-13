@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/target
+**/dist
+**/.env
+**/.env.*
+**/*credentials*.json
+**/*service-account*.json
+**/*.pem
+.firebase
+.firebase-data
+**/test-results
+**/playwright-report

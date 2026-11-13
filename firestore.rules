@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // All future data access goes through the backend. Admin SDK access bypasses
+    // these rules, so Spring must enforce household membership on every operation.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
