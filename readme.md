@@ -1,7 +1,17 @@
-# Roommate Expense Sharing — Group 17
 
-CS3300 Project 2: a shared space for roommates to organize bills, track balances,
+# Fair Share | Group 17's Project 2
+### Roommate expense tracking / sharing app
+a shared space for roommates to organize bills, track balances,
 request payments, and discuss charges without separate spreadsheets and group chats.
+---
+
+| Project Member Name | GitHub Account | Associated PRs |
+| ----- | ----- | ----- |
+| Robert Ives | [@mnfu](https://github.com/mnfu) |  | 
+| Yitian Yu | [@YitianYu69](https://github.com/YitianYu69) |
+| Eric Chang | [@EricChang9](https://github.com/EricChang9) |
+|Joseph Huang| [@huangjoseph45](https://github.com/huangjoseph45) |
+| Georgii Miskovets | [@georgii-miskovets](https://github.com/georgii-miskovets) |
 
 ## Current status
 
