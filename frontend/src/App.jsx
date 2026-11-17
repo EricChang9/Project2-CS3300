@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './auth/AuthProvider.jsx';
 import AccountForm from './auth/AccountForm.jsx';
+import { HouseholdProvider } from './households/HouseholdProvider.jsx';
+import HouseholdWorkspace from './households/HouseholdWorkspace.jsx';
 
 function BackendStatus() {
   const [status, setStatus] = useState('Checking backend…');
@@ -26,7 +28,7 @@ function AppContent() {
     <main>
       {phase === 'loading' ? <section className="card centered"><h1>Getting things ready.</h1><p role="status">Checking your account…</p></section>
       : phase === 'error' ? <section className="card centered"><h1>Let’s reconnect.</h1><p role="alert">{message}</p><button className="primary" onClick={retryVerification}>Try again</button><button className="text-button" onClick={logout}>Return to sign in</button></section>
-      : user ? <section className="card centered"><p className="eyebrow">YOU’RE SIGNED IN</p><h1>Welcome, {user.displayName || user.email || 'housemate'}.</h1><p>Your shared home starts here. Household tools are coming next.</p></section>
+      : user ? <HouseholdProvider key={user.uid}><HouseholdWorkspace /></HouseholdProvider>
       : <div className="auth-layout"><section className="welcome-copy">
           <p className="eyebrow">A LITTLE MORE HARMONY AT HOME</p><h1>Roommate Expenses</h1>
           <p className="hero-line">One home.<br />A fair share.</p>
