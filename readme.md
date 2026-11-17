@@ -36,7 +36,8 @@ messaging, and summaries are **planned**, not implemented yet.
 | Collaboration | GitHub issues, pull requests, GitHub Actions |
 
 We interpret “Firebase database” as **Cloud Firestore** for this scaffold.
-Firestore is not connected to Spring Boot yet. No cloud account, credentials,
+Firestore access is available as an opt-in Spring bean; see [backend setup](backend/README.md).
+No cloud account, credentials,
 Gmail authorization, or Stripe account is needed to run the starter.
 
 ## Prerequisites
@@ -134,8 +135,9 @@ The development servers run separately. Building the Docker image combines them.
 | --- | --- | --- |
 | `PORT` | `8080` | Spring Boot port; also used by Cloud Run |
 | `API_PROXY_TARGET` | `http://127.0.0.1:8080` | Vite dev proxy destination, in `frontend/.env` |
-| `GOOGLE_CLOUD_PROJECT` | Not read yet | Reserved for future Firestore integration |
-| `FIRESTORE_EMULATOR_HOST` | Not read yet | Reserved for future Firestore integration |
+| `FIRESTORE_ENABLED` | `false` | Enable the backend database client |
+| `GOOGLE_CLOUD_PROJECT` | Empty | Required project ID when Firestore is enabled |
+| `FIRESTORE_EMULATOR_HOST` | Empty | Use emulator credentials and a local host:port; unset for ADC |
 
 Spring Boot does **not** automatically load `backend/.env`. The example there
 is a reference for future integrations; export backend settings in your shell.
@@ -195,15 +197,15 @@ firebase emulators:start --only firestore --project demo-roommate-expenses
 - The `demo-` project is local-only; this command does not provision cloud resources.
 - Data is ephemeral by default. Optional exports can be stored in ignored `.firebase-data/`.
 
-When the backend persistence layer is implemented, configure its Firestore
-Admin SDK with `GOOGLE_CLOUD_PROJECT=demo-roommate-expenses` and
+Enable the backend Firestore client with `FIRESTORE_ENABLED=true`,
+`GOOGLE_CLOUD_PROJECT=demo-roommate-expenses`, and
 `FIRESTORE_EMULATOR_HOST=127.0.0.1:8081`.
 For deployed Firestore, remove the emulator variable and use Application Default
 Credentials with a Cloud Run service account.
 
 `firestore.rules` denies direct client reads/writes. Admin SDK calls bypass
 these rules, so backend authorization must check household membership for every
-read and write. Starting the emulator alone does not connect this scaffold to it.
+read and write. See [backend setup](backend/README.md) for the emulator integration test.
 
 ## Docker and Cloud Run
 
