@@ -76,6 +76,9 @@ input::placeholder { color: #97a397; }
 .count-badge { margin-left: 6px; border-radius: 20px; background: #eaf1e3; padding: 2px 8px; font-size: 11px; }
 .empty-home { text-align: center; padding: 26px; }
 .empty-icon { font-size: 40px; color: #608b63; }
+.spaced-button { margin-top: 18px; }
+.invitation-result { background: #f6f9f2; border: 1px solid #e2ead9; padding: 0 18px 18px; border-radius: 10px; }
+.code-input { font-family: ui-monospace, monospace; font-weight: 700; letter-spacing: 1px; }
 @media (max-width: 900px) { .workspace-grid { grid-template-columns: 1fr; } .sidebar-note { display: none; } }
 @media (max-width: 600px) { .workspace-heading { align-items: start; flex-direction: column; } .inline-form { flex-direction: column; } .inline-form button { width: 100%; } .member-list li { flex-wrap: wrap; } .tag { margin-left: 50px; } }
 @media (max-width: 720px) { main { padding: 32px 6%; } .site-header { padding: 18px 6%; flex-wrap: wrap; } .header-actions { flex-wrap: wrap; gap: 12px; } .auth-layout { grid-template-columns: 1fr; gap: 28px; } .account-card { max-width: none; } .hero-line { font-size: 44px; } .home-art, .small-print { display: none; } .hero-description { max-width: none; } .card { padding: 26px; } .site-footer { flex-wrap: wrap; } }
