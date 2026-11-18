@@ -31,6 +31,7 @@ export function mockApi(handler = () => undefined) {
     if (custom !== undefined) return custom;
     if (path === '/api/health') return response({ status: 'UP' });
     if (path === '/api/me') return response({ uid: 'alice', email: 'alice@example.com', displayName: 'Alice' });
+    if (path === '/api/households') return response([]);
     throw new Error(`Unexpected test API: ${path}`);
   });
   vi.stubGlobal('fetch', fetchMock);
