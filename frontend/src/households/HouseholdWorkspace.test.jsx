@@ -43,6 +43,18 @@ describe('household workspace', () => {
     expect(screen.getByText('bob', { exact: true })).toBeInTheDocument();
   });
 
+  it('shows usernames instead of generic housemate labels or internal IDs', async () => {
+    const household = home('named', 'Maple');
+    household.members = [{ uid: 'alice', username: 'alice123' }, { uid: 'opaque-firebase-id', username: 'Joseph' }];
+    mockApi(path => path === '/api/households' ? response([household]) : undefined);
+    render(<App authClient={fakeAuth(sdkUser())} />);
+    expect(await screen.findByText('Joseph', { exact: true })).toBeInTheDocument();
+    expect(screen.getByText('alice123', { exact: true })).toBeInTheDocument();
+    expect(screen.getByText('You', { exact: true })).toBeInTheDocument();
+    expect(screen.queryByText('Housemate', { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByText('opaque-firebase-id', { exact: true })).not.toBeInTheDocument();
+  });
+
   it('does not override a newer selection when a refresh finishes', async () => {
     let finish; let calls = 0;
     mockApi(path => {

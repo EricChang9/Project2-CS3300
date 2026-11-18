@@ -4,7 +4,8 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-@RestControllerAdvice(assignableTypes = {HouseholdController.class, edu.group17.roommates.invitation.InvitationController.class})
+@RestControllerAdvice(assignableTypes = {HouseholdController.class, edu.group17.roommates.invitation.InvitationController.class,
+        edu.group17.roommates.account.CurrentUserController.class})
 public class HouseholdExceptionHandler {
     // Do not let Spring's default validation log include submitted invitation codes.
     @ExceptionHandler(MethodArgumentNotValidException.class)

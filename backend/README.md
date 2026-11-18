@@ -125,7 +125,7 @@ Response example:
   "name": "Our apartment",
   "createdBy": "firebase-uid",
   "createdAt": "2026-11-17T20:00:00Z",
-  "members": [{ "uid": "firebase-uid", "joinedAt": "2026-11-17T20:00:00Z" }]
+  "members": [{ "uid": "firebase-uid", "joinedAt": "2026-11-17T20:00:00Z", "username": "housemate-name" }]
 }
 ```
 
@@ -157,3 +157,13 @@ firebase emulators:exec --only firestore --project demo-roommate-expenses \
 Integration tests use unique IDs, a `demo-` project, emulator credentials, bounded
 waits, and cleanup. The failure test precreates a conflicting membership, verifies
 that the batch creates no household, and preserves the preexisting document.
+
+Member usernames come from server-maintained `userProfiles/{encodedUid}` records.
+With Firestore enabled, `/api/me` syncs the verified token's Firebase display name,
+or the email portion before `@` when no display name exists. The profile stores
+only the UID and username, not a copy of the full email. Household listing joins
+these names onto authorized member responses; UI labels never grant membership.
+Names refresh during account verification and are visible to household peers on
+the next household refresh, without requiring another invitation. Older accounts
+populate their profile on their next account verification; existing local members
+were backfilled from Firebase account metadata for this development session.
