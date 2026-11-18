@@ -60,11 +60,16 @@ export default function HouseholdWorkspace() {
       {selectedHousehold ? <section className="card member-card" key={`members-${selectedHousehold.id}`} aria-labelledby="current-home-title">
           <p className="eyebrow">CURRENT HOUSEHOLD</p><h2 id="current-home-title">{selectedHousehold.name}</h2>
           <h3>Housemates <span className="count-badge">{selectedHousehold.members.length}</span></h3>
-          <ul className="member-list">{selectedHousehold.members.map((member, index) => <li key={member.uid}>
-            <span className="avatar" aria-hidden="true">{member.uid === user.uid ? 'Y' : index + 1}</span>
-            <div><strong>{member.uid === user.uid ? 'You' : member.displayName || member.email || 'Housemate'}</strong><span className="member-id">{member.uid}</span></div>
-            {member.uid === selectedHousehold.createdBy && <span className="tag">Created this home</span>}
-          </li>)}</ul>
+          <ul className="member-list">{selectedHousehold.members.map(member => {
+            const self = member.uid === user.uid;
+            const username = member.username || member.displayName || member.email?.split('@')[0]
+              || (self ? user.displayName || user.email?.split('@')[0] : null) || member.uid;
+            return <li key={member.uid}>
+              <span className="avatar" aria-hidden="true">{username.charAt(0).toUpperCase()}</span>
+              <div><strong>{username}</strong>{self && <span className="self-label">You</span>}</div>
+              {member.uid === selectedHousehold.createdBy && <span className="tag">Created this home</span>}
+            </li>;
+          })}</ul>
         </section> : !loading && !error && <section className="empty-home"><div className="empty-icon" aria-hidden="true">⌂</div><h2>Your home starts here.</h2><p className="muted">Create a household and bring your shared space together.</p></section>}
       {selectedHousehold && <InvitationShare key={`invitation-${selectedHousehold.id}`} household={selectedHousehold} />}
       <JoinHousehold />

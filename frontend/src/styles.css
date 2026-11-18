@@ -71,6 +71,7 @@ input::placeholder { color: #97a397; }
 .member-list li { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid #edf0e9; }
 .avatar { background: #e8efe2; border-radius: 50%; height: 38px; width: 38px; flex-shrink: 0; display: grid; place-items: center; color: #497545; font-size: 14px; font-weight: 700; }
 .member-id { display: block; color: #7c897b; font-size: 11px; overflow-wrap: anywhere; }
+.self-label { display: block; color: #7c897b; font-size: 11px; }
 .member-list li > div { min-width: 0; }
 .tag { margin-left: auto; background: #f2f5eb; border-radius: 6px; padding: 4px 8px; font-size: 10px; white-space: nowrap; color: #61764c; }
 .count-badge { margin-left: 6px; border-radius: 20px; background: #eaf1e3; padding: 2px 8px; font-size: 11px; }

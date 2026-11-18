@@ -3,6 +3,7 @@ package edu.group17.roommates.household;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
+import edu.group17.roommates.account.UserProfileStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
@@ -41,7 +42,7 @@ public class FirestoreHouseholdStore implements HouseholdStore {
         // Read the actual serverTimestamp transform, which need not equal updateTime.
         Instant committedAt = instant(await(household.get()).getTimestamp("createdAt"));
         return new Household(household.getId(), name, creatorUid, committedAt,
-                List.of(new Household.Member(creatorUid, committedAt)));
+                List.of(new Household.Member(creatorUid, committedAt, username(creatorUid))));
     }
 
     @Override
@@ -50,7 +51,8 @@ public class FirestoreHouseholdStore implements HouseholdStore {
         List<Household> households = new ArrayList<>();
         for (var document : snapshots.getDocuments()) {
             var members = await(document.getReference().collection("members").get()).getDocuments().stream()
-                    .map(member -> new Household.Member(member.getString("uid"), instant(member.getTimestamp("joinedAt"))))
+                    .map(member -> new Household.Member(member.getString("uid"), instant(member.getTimestamp("joinedAt")),
+                            username(member.getString("uid"))))
                     .sorted(Comparator.comparing(Household.Member::uid)).toList();
             households.add(new Household(document.getId(), document.getString("name"),
                     document.getString("createdBy"), instant(document.getTimestamp("createdAt")), members));
@@ -62,6 +64,11 @@ public class FirestoreHouseholdStore implements HouseholdStore {
     // Firebase UIDs may contain characters that are not safe Firestore document paths.
     static String memberDocumentId(String uid) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(uid.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String username(String uid) {
+        var profile = await(firestore.collection("userProfiles").document(UserProfileStore.documentId(uid)).get());
+        return profile.exists() ? profile.getString("username") : null;
     }
 
     private static Instant instant(Timestamp timestamp) {
