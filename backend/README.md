@@ -101,3 +101,59 @@ SDK, then call `/api/me` from the same-origin app or a REST client.
 
 References: [Firebase ID token verification](https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_a_third-party_jwt_library),
 [Spring Security JWT resource server](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html).
+
+## Household creation and listing
+
+Enable Firestore using the configuration above. Household endpoints are registered
+only when `FIRESTORE_ENABLED=true`; without it the shell/health/current-user API
+still start and household routes are unavailable. Both household operations require
+a verified bearer token:
+
+- `POST /api/households` with JSON `{ "name": "Our apartment" }` returns **201**
+  with a household object. Names must be nonblank and at most 80 characters before
+  trimming surrounding whitespace. IDs, creator identity, and timestamps are assigned
+  by the server; supplied identity/ID fields are ignored.
+- `GET /api/households` returns an array of the caller's households, newest first,
+  with household ID as a stable tie-breaker. A caller with no memberships gets `[]`.
+  There is no user-ID parameter that grants access to somebody else's households.
+
+Response example:
+
+```json
+{
+  "id": "server-generated-id",
+  "name": "Our apartment",
+  "createdBy": "firebase-uid",
+  "createdAt": "2026-11-17T20:00:00Z",
+  "members": [{ "uid": "firebase-uid", "joinedAt": "2026-11-17T20:00:00Z" }]
+}
+```
+
+Storage: `households/{generatedId}` contains `name`, `createdBy`, server
+`createdAt`, and a `memberIds` array. `households/{id}/members/{encodedUid}` stores
+`uid` and server `joinedAt`; `encodedUid` is unpadded Base64 URL encoding of the
+UID's UTF-8 bytes so arbitrary Firebase UIDs cannot introduce path segments.
+A single atomic Firestore batch creates the household and creator membership.
+The `memberIds` array supports the single-field membership query without a
+composite index. Future invitation/removal operations must update both membership
+representations atomically. Financial endpoints will additionally need issue #9's
+membership/resource guard; this PR exposes only create and current-user list.
+
+Invalid input returns 400; missing/invalid identity returns 401. Database failures
+return a generic 503 without database details. A timeout may leave the outcome
+unknown, so clients should refresh the household list before retrying creation.
+Creation is not an idempotent payment operation. Invitations, member removal,
+household detail routes, roles, and frontend screens remain separate issues.
+
+`./mvnw verify` runs household service and secure MockMvc controller tests without
+Firebase accounts. To also verify real database reads/writes and failed-batch
+atomicity, run from the repository root:
+
+```sh
+firebase emulators:exec --only firestore --project demo-roommate-expenses \
+  'cd backend && ./mvnw --batch-mode --no-transfer-progress verify'
+```
+
+Integration tests use unique IDs, a `demo-` project, emulator credentials, bounded
+waits, and cleanup. The failure test precreates a conflicting membership, verifies
+that the batch creates no household, and preserves the preexisting document.

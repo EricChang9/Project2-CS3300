@@ -7,8 +7,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -20,6 +22,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.GET, "/api/health", "/", "/index.html", "/assets/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/me").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/households").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/households").authenticated()
                 .anyRequest().denyAll())
                 .build();
     }
