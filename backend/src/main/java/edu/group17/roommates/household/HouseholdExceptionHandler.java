@@ -2,9 +2,16 @@ package edu.group17.roommates.household;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
-@RestControllerAdvice(assignableTypes = HouseholdController.class)
+@RestControllerAdvice(assignableTypes = {HouseholdController.class, edu.group17.roommates.invitation.InvitationController.class})
 public class HouseholdExceptionHandler {
+    // Do not let Spring's default validation log include submitted invitation codes.
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail validation() {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request fields");
+    }
+
     @ExceptionHandler(HouseholdStorageException.class)
     public ProblemDetail unavailable() {
         return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "Household storage is unavailable");
