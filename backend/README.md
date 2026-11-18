@@ -76,6 +76,11 @@ claim validators and the real Spring Security filter chain still execute:
 ./mvnw -Dtest=AuthenticationIntegrationTest,FirebaseJwtConfigurationTest,HealthIntegrationTest test
 ```
 
+Alternatively in powershell:
+```sh
+.\mvnw.cmd "-Dtest=AuthenticationIntegrationTest,FirebaseJwtConfigurationTest,HealthIntegrationTest" test
+```
+
 Tests require no Firebase account, Google keys/network, or real tokens. Production
 does not accept unsigned Auth-emulator tokens or test keys. For manual testing,
 use a Firebase development project and obtain a normal ID token from its client
