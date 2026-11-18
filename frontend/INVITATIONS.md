@@ -1,11 +1,11 @@
 # Invitation UI and backend contract
 
-**Integration dependency: backend issue #10 is not implemented yet.** This PR
-implements issue #12's UI against the following explicit proposed contract.
-Keep it draft/blocked until the backend implements and verifies this contract
-(or update this client to the final backend contract). The backend authorization
-dependency in #9 is also still outstanding. No production code generates fake
-codes or silently simulates a successful join.
+**Integration dependency: backend PR #49 (issues #9/#10).** This frontend PR
+implements issue #12's UI against the contract below, which #49 implements and
+tests. Keep the frontend draft until its backend dependency is reviewed and
+integrated. See `backend/INVITATIONS.md` after combining the branches for expiry,
+reuse, membership authorization, and concurrency behavior. No production code
+generates fake codes or silently simulates a successful join.
 
 All calls go through the shared bearer-token client. Codes are trimmed but retain
 case. They stay in component memory and are never logged or put into URLs/storage.
@@ -49,6 +49,6 @@ are blocked. Failed validation preserves the entered code for correction.
 `npm test` covers sharing/copy, joining from an empty account, invalid/expired
 codes, existing membership, pending-submit protection, late results after switching,
 clipboard denial, and unavailable APIs. `npm run build` verifies compilation.
-Tests mock this proposed API contract. Live invitation creation/redemption and
-database/concurrency authorization tests belong to #10 and have not been claimed
-as passing by this frontend PR. No backend files change here.
+Frontend tests mock this API contract. Backend PR #49 adds real emulator-backed
+HTTP creation/redemption, membership, expiry, and concurrency tests. No backend
+files change in the frontend PR itself.
