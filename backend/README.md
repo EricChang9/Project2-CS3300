@@ -9,6 +9,13 @@ export GOOGLE_CLOUD_PROJECT=demo-roommate-expenses
 export FIRESTORE_EMULATOR_HOST=127.0.0.1:8081
 ```
 
+Alternatively in powershell:
+```sh
+$env:FIRESTORE_ENABLED = "true"
+$env:GOOGLE_CLOUD_PROJECT = "demo-roommate-expenses"
+$env:FIRESTORE_EMULATOR_HOST = "127.0.0.1:8081"
+```
+
 Start the emulator from the repository root (Java 21 and Firebase CLI required):
 
 ```sh
@@ -19,6 +26,12 @@ In another terminal, run the opt-in integration test from `backend/`:
 
 ```sh
 FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 ./mvnw -Dtest=FirestoreIntegrationTest test
+```
+
+Alternatively in powershell:
+```sh
+$env:FIRESTORE_EMULATOR_HOST = "127.0.0.1:8081"
+.\mvnw.cmd -Dtest=FirestoreIntegrationTest test
 ```
 
 This test uses a fixed `demo-` project, unique document IDs, bounded waits,
@@ -74,6 +87,11 @@ claim validators and the real Spring Security filter chain still execute:
 
 ```sh
 ./mvnw -Dtest=AuthenticationIntegrationTest,FirebaseJwtConfigurationTest,HealthIntegrationTest test
+```
+
+Alternatively in powershell:
+```sh
+.\mvnw.cmd "-Dtest=AuthenticationIntegrationTest,FirebaseJwtConfigurationTest,HealthIntegrationTest" test
 ```
 
 Tests require no Firebase account, Google keys/network, or real tokens. Production
