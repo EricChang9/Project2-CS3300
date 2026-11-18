@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { useHouseholds } from './HouseholdProvider.jsx';
+import InvitationShare from '../invitations/InvitationShare.jsx';
+import JoinHousehold from '../invitations/JoinHousehold.jsx';
 
 function CreateHousehold() {
   const { create } = useHouseholds();
@@ -26,7 +28,7 @@ function CreateHousehold() {
 
   return <section className="card" aria-labelledby="create-household-title">
     <p className="eyebrow">A PLACE FOR YOUR PEOPLE</p><h2 id="create-household-title">Create a household</h2>
-    <p className="muted">Give your shared space a name. You can add housemates with an invitation later.</p>
+    <p className="muted">Give your shared space a name, then invite the people who make it home.</p>
     {error && <p role="alert" className="error">{error}</p>}
     {notice && <p role="status" className="notice">{notice}</p>}
     <form onSubmit={submit} aria-busy={pending}><fieldset disabled={pending}>
@@ -55,7 +57,7 @@ export default function HouseholdWorkspace() {
           <p className="field-help">You belong to {households.length} {households.length === 1 ? 'household' : 'households'}.</p></>}
       <div className="sidebar-note"><span aria-hidden="true">⌂</span><p>Shared life works better when everyone is on the same page.</p></div>
     </aside><div className="workspace-content">
-      {selectedHousehold ? <section className="card member-card" key={selectedHousehold.id} aria-labelledby="current-home-title">
+      {selectedHousehold ? <section className="card member-card" key={`members-${selectedHousehold.id}`} aria-labelledby="current-home-title">
           <p className="eyebrow">CURRENT HOUSEHOLD</p><h2 id="current-home-title">{selectedHousehold.name}</h2>
           <h3>Housemates <span className="count-badge">{selectedHousehold.members.length}</span></h3>
           <ul className="member-list">{selectedHousehold.members.map((member, index) => <li key={member.uid}>
@@ -64,6 +66,8 @@ export default function HouseholdWorkspace() {
             {member.uid === selectedHousehold.createdBy && <span className="tag">Created this home</span>}
           </li>)}</ul>
         </section> : !loading && !error && <section className="empty-home"><div className="empty-icon" aria-hidden="true">⌂</div><h2>Your home starts here.</h2><p className="muted">Create a household and bring your shared space together.</p></section>}
+      {selectedHousehold && <InvitationShare key={`invitation-${selectedHousehold.id}`} household={selectedHousehold} />}
+      <JoinHousehold />
       <CreateHousehold />
     </div></div>
   </div>;
