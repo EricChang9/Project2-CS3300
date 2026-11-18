@@ -25,11 +25,11 @@ class HealthIntegrationTest {
 
     @Test
     void householdEndpointsAreClosedUntilAuthenticationExists() throws Exception {
-        mvc.perform(get("/api/households")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/households")).andExpect(status().isUnauthorized());
     }
 
     @Test
-    void writesRequireCsrfProtection() throws Exception {
-        mvc.perform(post("/api/health")).andExpect(status().isForbidden());
+    void nonPublicOperationsRequireBearerAuthentication() throws Exception {
+        mvc.perform(post("/api/health")).andExpect(status().isUnauthorized());
     }
 }

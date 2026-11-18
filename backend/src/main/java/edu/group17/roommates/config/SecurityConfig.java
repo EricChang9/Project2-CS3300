@@ -5,15 +5,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Account authentication and household authorization are future features.
-        // Serve the public app shell and health check; keep application APIs closed.
-        return http.authorizeHttpRequests(authorize -> authorize
+        // Credentials are explicit bearer headers, never browser cookies/sessions.
+        return http.csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(resource -> resource.jwt(Customizer.withDefaults()))
+                .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.GET, "/api/health", "/", "/index.html", "/assets/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/me").authenticated()
                 .anyRequest().denyAll())
                 .build();
     }
