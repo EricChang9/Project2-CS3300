@@ -15,6 +15,13 @@ export function formatCents(cents) {
   return `${cents < 0 ? '-' : ''}$${whole}.${fraction}`;
 }
 
+/** Format integer minor units without floating-point conversion, retaining the currency code. */
+export function formatBalanceCents(cents, currency = 'USD') {
+  if (!Number.isSafeInteger(cents)) return 'Amount unavailable';
+  const formatted = formatCents(cents);
+  return currency === 'USD' ? formatted : `${formatted.replace('$', '')} ${currency}`;
+}
+
 export function calculateEqualShares(totalCents, participantIds) {
   if (!Number.isSafeInteger(totalCents) || totalCents < 0 || participantIds.length === 0) return {};
   const base = Math.floor(totalCents / participantIds.length);

@@ -37,6 +37,10 @@ export function mockApi(handler = () => undefined) {
         ? response({ id: path.split('/').at(-1), description: 'Test expense', amountCents: 100, sharesCents: {} })
         : response({ items: [], nextCursor: null });
     }
+    if (/^\/api\/households\/[^/]+\/balances$/.test(path)) {
+      return response({ householdId: path.split('/')[3], debts: [],
+        members: [{ memberId: 'alice', byCurrency: {} }], totals: [] });
+    }
     throw new Error(`Unexpected test API: ${path}`);
   });
   vi.stubGlobal('fetch', fetchMock);
