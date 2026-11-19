@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthProvider.jsx';
 import { useHouseholds } from './HouseholdProvider.jsx';
 import InvitationShare from '../invitations/InvitationShare.jsx';
 import JoinHousehold from '../invitations/JoinHousehold.jsx';
+import ExpenseEntryForm from '../expenses/ExpenseEntryForm.jsx';
 
 function CreateHousehold() {
   const { create } = useHouseholds();
@@ -71,6 +72,7 @@ export default function HouseholdWorkspace() {
             </li>;
           })}</ul>
         </section> : !loading && !error && <section className="empty-home"><div className="empty-icon" aria-hidden="true">⌂</div><h2>Your home starts here.</h2><p className="muted">Create a household and bring your shared space together.</p></section>}
+      {selectedHousehold && <ExpenseEntryForm key={`expense-entry-${selectedHousehold.id}`} household={selectedHousehold} />}
       {selectedHousehold && <InvitationShare key={`invitation-${selectedHousehold.id}`} household={selectedHousehold} />}
       <JoinHousehold />
       <CreateHousehold />

@@ -226,6 +226,16 @@ its per-participant `shares` documents atomically under
 remainder cents in participant order. Custom allocations must include exactly
 the participant IDs and sum to `amountCents`.
 
+Members can read history from `GET /api/households/{householdId}/expenses` and
+an expense from `GET /api/households/{householdId}/expenses/{expenseId}`. History
+uses `limit` (default 20, maximum 50) and an opaque `cursor` returned as
+`nextCursor`. Results sort by `expenseDate` descending, then expense document
+ID descending, so entries on the same date have a stable order. Each page
+returns `{ "items": [...], "nextCursor": "..." }`; a null cursor means there
+are no more results. Cursors are scoped to the household and should be passed
+back unchanged. The required composite index is declared in
+`firestore.indexes.json`.
+
 ## Docker and Cloud Run
 
 From the repository root:
