@@ -2,6 +2,7 @@ package edu.group17.roommates.expense;
 
 import edu.group17.roommates.expense.split.CustomSplitStrategy;
 import edu.group17.roommates.expense.split.EqualSplitStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,6 +20,7 @@ public class ExpenseService {
     private final EqualSplitStrategy equalSplit = new EqualSplitStrategy();
     private final CustomSplitStrategy customSplit = new CustomSplitStrategy();
 
+    @Autowired
     public ExpenseService(ExpenseStore store) {
         this(store, Clock.systemUTC());
     }
