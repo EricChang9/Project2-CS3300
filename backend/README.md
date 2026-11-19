@@ -167,3 +167,6 @@ Names refresh during account verification and are visible to household peers on
 the next household refresh, without requiring another invitation. Older accounts
 populate their profile on their next account verification; existing local members
 were backfilled from Firebase account metadata for this development session.
+
+For the authenticated household balance endpoint and its debt-netting and
+settlement conventions, see [BALANCES.md](BALANCES.md).
