@@ -15,6 +15,8 @@ import java.util.*;
 @ConditionalOnProperty(name = "app.firestore.enabled", havingValue = "true")
 public class ExpenseService {
     private static final int MAX_PARTICIPANTS = 499; // one expense + at most 499 share writes per transaction
+    public static final int DEFAULT_HISTORY_LIMIT = 20;
+    private static final int MAX_HISTORY_LIMIT = 50;
     private final ExpenseStore store;
     private final Clock clock;
     private final EqualSplitStrategy equalSplit = new EqualSplitStrategy();
@@ -75,6 +77,25 @@ public class ExpenseService {
         return store.create(expense);
     }
 
+    public ExpensePage list(String householdId, String callerUid, int limit, String cursor) {
+        requireIdentity(callerUid);
+        if (householdId == null || !householdId.matches("[A-Za-z0-9_-]{1,128}")) throw notFound();
+        if (limit < 1 || limit > MAX_HISTORY_LIMIT) {
+            throw new IllegalArgumentException("Expense history limit must be between 1 and " + MAX_HISTORY_LIMIT);
+        }
+        return store.list(householdId, callerUid, limit, cursor);
+    }
+
+    public Expense find(String householdId, String callerUid, String expenseId) {
+        requireIdentity(callerUid);
+        if (householdId == null || !householdId.matches("[A-Za-z0-9_-]{1,128}")) throw notFound();
+        return store.find(householdId, callerUid, expenseId);
+    }
+
+    private static void requireIdentity(String uid) {
+        if (uid == null || uid.isBlank()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    }
+
     private static ResponseStatusException notFound() {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "Household resource not found");
     }
@@ -83,4 +104,5 @@ public class ExpenseService {
                                 List<String> participantIds, java.time.LocalDate expenseDate,
                                 ExpenseCategory category, SplitType splitType,
                                 Map<String, Long> customAllocations) {}
+
 }

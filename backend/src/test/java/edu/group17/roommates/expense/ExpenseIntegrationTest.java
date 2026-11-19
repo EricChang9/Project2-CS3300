@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static edu.group17.roommates.support.TestIdentityConfiguration.token;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @EnabledIfEnvironmentVariable(named = "FIRESTORE_EMULATOR_HOST", matches = ".+")
@@ -44,6 +46,7 @@ class ExpenseIntegrationTest {
     private final String thirdMember = "expense-third/" + UUID.randomUUID();
     private final String outsider = "expense-outsider/" + UUID.randomUUID();
     private Household home;
+    private Household otherHome;
 
     @BeforeEach void createHouseholdAndMembers() {
         home = households.create("Expense integration home", owner);
@@ -52,8 +55,12 @@ class ExpenseIntegrationTest {
     }
 
     @AfterEach void cleanOnlyThisTestDocuments() throws Exception {
-        if (home == null) return;
-        var reference = firestore.collection("households").document(home.id());
+        if (home != null) cleanHousehold(home);
+        if (otherHome != null) cleanHousehold(otherHome);
+    }
+
+    private void cleanHousehold(Household household) throws Exception {
+        var reference = firestore.collection("households").document(household.id());
         for (var expense : reference.collection("expenses").get().get(10, TimeUnit.SECONDS).getDocuments()) {
             for (var share : expense.getReference().collection("shares").get().get(10, TimeUnit.SECONDS).getDocuments()) {
                 share.getReference().delete().get(10, TimeUnit.SECONDS);
@@ -63,7 +70,7 @@ class ExpenseIntegrationTest {
         for (var member : reference.collection("members").get().get(10, TimeUnit.SECONDS).getDocuments()) {
             member.getReference().delete().get(10, TimeUnit.SECONDS);
         }
-        for (var invitation : firestore.collection("householdInvitations").whereEqualTo("householdId", home.id())
+        for (var invitation : firestore.collection("householdInvitations").whereEqualTo("householdId", household.id())
                 .get().get(10, TimeUnit.SECONDS).getDocuments()) {
             invitation.getReference().delete().get(10, TimeUnit.SECONDS);
         }
@@ -83,8 +90,8 @@ class ExpenseIntegrationTest {
         var response = com.jayway.jsonpath.JsonPath.parse(result.getResponse().getContentAsString());
         String expenseId = response.read("$.id");
         assertEquals(owner, (String) response.read("$.createdBy"));
-        assertEquals(51, ((Number) response.read("$.sharesCents." + owner)).longValue());
-        assertEquals(50, ((Number) response.read("$.sharesCents." + roommate)).longValue());
+        assertEquals(51, ((Number) response.read("$.sharesCents['" + owner + "']")).longValue());
+        assertEquals(50, ((Number) response.read("$.sharesCents['" + roommate + "']")).longValue());
 
         var expenseRef = firestore.collection("households").document(home.id()).collection("expenses").document(expenseId);
         var stored = expenseRef.get().get(10, TimeUnit.SECONDS);
@@ -137,6 +144,68 @@ class ExpenseIntegrationTest {
                 .get(10, TimeUnit.SECONDS).getLong("amountCents"));
         assertEquals(1, firestore.collection("households").document(home.id()).collection("expenses")
                 .get().get(10, TimeUnit.SECONDS).size());
+    }
+
+    @Test void pagesHistoryInStableOrderAndHidesMissingOrCrossHouseholdExpenses() throws Exception {
+        mvc.perform(get("/api/households/" + home.id() + "/expenses")
+                        .header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.items.length()").value(0));
+
+        String older = createExpense(home.id(), "Older", "2026-11-17");
+        String newerA = createExpense(home.id(), "Newer A", "2026-11-18");
+        String newerB = createExpense(home.id(), "Newer B", "2026-11-18");
+        otherHome = households.create("Other expense home", owner);
+        String otherExpense = createExpense(otherHome.id(), "Other home", "2026-11-18");
+
+        var firstPage = mvc.perform(get("/api/households/" + home.id() + "/expenses")
+                        .param("limit", "2").header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.items.length()").value(2)).andReturn();
+        var pageJson = com.jayway.jsonpath.JsonPath.parse(firstPage.getResponse().getContentAsString());
+        @SuppressWarnings("unchecked")
+        List<String> firstIds = pageJson.read("$.items[*].id");
+        var sameDateIds = List.of(newerA, newerB).stream().sorted(Comparator.reverseOrder()).toList();
+        assertEquals(sameDateIds, firstIds);
+        String cursor = pageJson.read("$.nextCursor");
+        assertNotNull(cursor);
+        assertFalse(cursor.isBlank());
+
+        var secondPage = mvc.perform(get("/api/households/" + home.id() + "/expenses")
+                        .param("limit", "2").param("cursor", cursor)
+                        .header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.items.length()").value(1)).andReturn();
+        assertEquals(List.of(older), com.jayway.jsonpath.JsonPath.parse(secondPage.getResponse().getContentAsString())
+                .read("$.items[*].id"));
+        assertNull(com.jayway.jsonpath.JsonPath.parse(secondPage.getResponse().getContentAsString())
+                .read("$.nextCursor"));
+
+        mvc.perform(get("/api/households/" + home.id() + "/expenses/" + newerA)
+                        .header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.description").value("Newer A"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .jsonPath("$.sharesCents['" + owner + "']").value(123));
+        mvc.perform(get("/api/households/" + home.id() + "/expenses/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/households/" + home.id() + "/expenses/" + otherExpense)
+                        .header("Authorization", "Bearer " + token(owner)))
+                .andExpect(status().isNotFound());
+    }
+
+    private String createExpense(String householdId, String description, String date) throws Exception {
+        var response = mvc.perform(post("/api/households/" + householdId + "/expenses")
+                        .header("Authorization", "Bearer " + token(owner))
+                        .contentType("application/json")
+                        .content("""
+                                {"description":"%s","amountCents":123,"currency":"USD","payerId":"%s",
+                                 "participantIds":["%s"],"expenseDate":"%s","category":"OTHER","splitType":"EQUAL"}
+                                """.formatted(description, owner, owner, date)))
+                .andExpect(status().isCreated()).andReturn();
+        return com.jayway.jsonpath.JsonPath.read(response.getResponse().getContentAsString(), "$.id");
     }
 
     private static String memberId(String uid) {
