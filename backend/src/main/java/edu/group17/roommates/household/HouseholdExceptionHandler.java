@@ -20,7 +20,7 @@ public class HouseholdExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail invalidName() {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid household name");
+    public ProblemDetail invalidRequest() {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request");
     }
 }

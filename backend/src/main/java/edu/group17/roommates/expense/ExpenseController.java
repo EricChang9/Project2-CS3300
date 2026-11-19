@@ -29,6 +29,20 @@ public class ExpenseController {
                 request.customAllocations()));
     }
 
+    @GetMapping("/api/households/{householdId}/expenses")
+    public ExpensePage list(@PathVariable String householdId,
+                            @RequestParam(defaultValue = "" + ExpenseService.DEFAULT_HISTORY_LIMIT) int limit,
+                            @RequestParam(required = false) String cursor,
+                            @AuthenticationPrincipal Jwt identity) {
+        return service.list(householdId, identity.getSubject(), limit, cursor);
+    }
+
+    @GetMapping("/api/households/{householdId}/expenses/{expenseId}")
+    public Expense find(@PathVariable String householdId, @PathVariable String expenseId,
+                        @AuthenticationPrincipal Jwt identity) {
+        return service.find(householdId, identity.getSubject(), expenseId);
+    }
+
     public record CreateExpenseRequest(
             @NotBlank @Size(max = 200) String description,
             @NotNull @Positive Long amountCents,
