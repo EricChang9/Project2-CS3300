@@ -8,6 +8,7 @@ import edu.group17.roommates.household.HouseholdStorageException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -60,8 +61,74 @@ public class FirestoreExpenseStore implements ExpenseStore {
         }));
     }
 
+    @Override
+    public ExpensePage list(String householdId, String uid, int limit, String cursorValue) {
+        access.requireMember(householdId, uid);
+        ExpenseCursor cursor = ExpenseCursor.decode(cursorValue, householdId);
+        Query query = firestore.collection("households").document(householdId).collection("expenses")
+                .orderBy("expenseDate", Query.Direction.DESCENDING)
+                .orderBy(FieldPath.documentId(), Query.Direction.DESCENDING)
+                .limit(limit + 1);
+        if (cursor != null) query = query.startAfter(cursor.expenseDate().toString(), cursor.expenseId());
+
+        var documents = await(query.get()).getDocuments();
+        boolean hasNext = documents.size() > limit;
+        int itemCount = Math.min(documents.size(), limit);
+        var items = new ArrayList<Expense>(itemCount);
+        for (int index = 0; index < itemCount; index++) {
+            var document = documents.get(index);
+            if (!householdId.equals(document.getString("householdId"))) throw hidden();
+            items.add(toExpense(document));
+        }
+        String nextCursor = hasNext
+                ? new ExpenseCursor(householdId, items.getLast().expenseDate(), items.getLast().id()).encode()
+                : null;
+        return new ExpensePage(items, nextCursor);
+    }
+
+    @Override
+    public Expense find(String householdId, String uid, String expenseId) {
+        if (expenseId == null || !expenseId.matches("[A-Za-z0-9_-]{1,128}")) throw hidden();
+        var reference = firestore.collection("households").document(householdId)
+                .collection("expenses").document(expenseId);
+        var document = access.requireResource(householdId, uid, reference);
+        return toExpense(document);
+    }
+
+    private Expense toExpense(DocumentSnapshot document) {
+        String householdId = document.getString("householdId");
+        String expenseId = document.getId();
+        var shares = new LinkedHashMap<String, Long>();
+        var shareDocuments = await(document.getReference().collection("shares").get()).getDocuments();
+        for (var share : shareDocuments) {
+            String participantId = share.getString("participantId");
+            Long amountCents = share.getLong("amountCents");
+            if (participantId != null && amountCents != null) shares.put(participantId, amountCents);
+        }
+        Object rawParticipants = document.get("participantIds");
+        if (!(rawParticipants instanceof List<?> participantValues)
+                || participantValues.stream().anyMatch(value -> !(value instanceof String))) {
+            throw new IllegalStateException("Stored expense participants are invalid");
+        }
+        @SuppressWarnings("unchecked")
+        List<String> participantIds = (List<String>) participantValues;
+        Timestamp createdAt = document.getTimestamp("createdAt");
+        if (createdAt == null) throw new IllegalStateException("Stored expense timestamp is missing");
+        return new Expense(expenseId, householdId, document.getString("description"),
+                document.getLong("amountCents"), document.getString("currency"), document.getString("payerId"),
+                participantIds,
+                java.time.LocalDate.parse(document.getString("expenseDate")),
+                ExpenseCategory.valueOf(document.getString("category")), SplitType.valueOf(document.getString("splitType")),
+                shares, document.getString("createdBy"), java.time.Instant.ofEpochSecond(
+                        createdAt.getSeconds(), createdAt.getNanos()));
+    }
+
     static String memberDocumentId(String uid) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(uid.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private static ResponseStatusException hidden() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Household resource not found");
     }
 
     private static <T> T await(ApiFuture<T> future) {
