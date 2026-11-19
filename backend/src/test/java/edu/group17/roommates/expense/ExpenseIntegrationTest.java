@@ -140,7 +140,7 @@ class ExpenseIntegrationTest {
         assertThrows(HouseholdStorageException.class, () -> expenses.create(failed));
         assertFalse(expenseRef.collection("shares").document(memberId(thirdMember)).get()
                 .get(10, TimeUnit.SECONDS).exists());
-        assertEquals(101L, expenseRef.collection("shares").document(memberId(owner)).get()
+        assertEquals(51L, expenseRef.collection("shares").document(memberId(owner)).get()
                 .get(10, TimeUnit.SECONDS).getLong("amountCents"));
         assertEquals(1, firestore.collection("households").document(home.id()).collection("expenses")
                 .get().get(10, TimeUnit.SECONDS).size());

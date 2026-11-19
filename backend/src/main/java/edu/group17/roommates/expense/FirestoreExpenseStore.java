@@ -95,6 +95,19 @@ public class FirestoreExpenseStore implements ExpenseStore {
         return toExpense(document);
     }
 
+    @Override
+    public List<Expense> listAllForBalances(String householdId, String uid) {
+        access.requireMember(householdId, uid);
+        var documents = await(firestore.collection("households").document(householdId)
+                .collection("expenses").get()).getDocuments();
+        var expenses = new ArrayList<Expense>(documents.size());
+        for (var document : documents) {
+            if (!householdId.equals(document.getString("householdId"))) throw hidden();
+            expenses.add(toExpense(document));
+        }
+        return List.copyOf(expenses);
+    }
+
     private Expense toExpense(DocumentSnapshot document) {
         String householdId = document.getString("householdId");
         String expenseId = document.getId();
