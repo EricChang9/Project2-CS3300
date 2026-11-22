@@ -80,6 +80,13 @@ No production application behavior is changed to make this suite pass. The
 separate assignment workflow runs for changes to this suite/report (or manual
 dispatch); no branch protection or merge policy is changed by this PR.
 
+The browser job pins Ubuntu 24.04, supported by the pinned Playwright release.
+Actions use Node 24 runtimes while the app continues to use Node 22 from `.nvmrc`.
+CI sets `BB_EVIDENCE_OUTPUT` to a fresh runner temporary file, so setup failures
+cannot upload the checked-in local snapshot as current CI results. Local runs
+still update `docs/testing/evidence/latest.json` by default; use
+`--evidence-output /tmp/blackbox-evidence.json` to preserve that snapshot.
+
 ## Rebuild the report
 
 ```sh

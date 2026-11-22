@@ -70,6 +70,9 @@ def main():
     parser.add_argument('--api-port',type=int,default=18080)
     parser.add_argument('--web-port',type=int,default=18081)
     parser.add_argument('--skip-browser',action='store_true')
+    parser.add_argument('--evidence-output',type=Path,
+        default=Path(os.environ.get('BB_EVIDENCE_OUTPUT',str(ROOT/'docs/testing/evidence/latest.json'))),
+        help='Sanitized results destination (CI uses a fresh runner temporary file)')
     args=parser.parse_args()
     if not re.fullmatch(r'(127\.0\.0\.1|localhost):\d+',args.emulator_host):
         parser.error('Only an explicitly local emulator host is accepted')
@@ -137,11 +140,11 @@ def main():
         'versions':{'java':subprocess.run(['java','-version'],capture_output=True,text=True).stderr.splitlines()[0],
                     'node':subprocess.check_output(['node','--version'],text=True).strip(),'python':sys.version.split()[0]},
         'commands':commands,'fatal_error':fatal,'results':sorted(records,key=lambda item:item['id'])}
-    destination=ROOT/'docs/testing/evidence/latest.json';destination.parent.mkdir(parents=True,exist_ok=True)
+    destination=args.evidence_output.resolve();destination.parent.mkdir(parents=True,exist_ok=True)
     sanitized=scrub(json.dumps(evidence,indent=2)).replace(str(ROOT),'[REPO]')
     destination.write_text(sanitized+'\n')
     passed=sum(record['status']=='passed' for record in records)
-    print(f'Black-box results: {passed}/{len(records)} passed. Evidence: {destination.relative_to(ROOT)}',flush=True)
+    print(f'Black-box results: {passed}/{len(records)} passed. Evidence: {destination}',flush=True)
     return 0 if not fatal and passed==len(records) else 1
 
 if __name__=='__main__':raise SystemExit(main())
