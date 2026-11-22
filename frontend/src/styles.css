@@ -122,8 +122,28 @@ input::placeholder { color: #97a397; }
 .expense-allocations ul { list-style: none; padding: 0; margin: 0; }
 .expense-allocations li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #edf0e9; }
 .expense-allocations li strong { font-variant-numeric: tabular-nums; }
+.balance-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.balance-heading .eyebrow { margin-bottom: 8px; }
+.balance-heading h2 { margin-bottom: 0; }
+.personal-balance > h3, .directed-debts > h3 { margin: 24px 0 12px; }
+.personal-balance-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.personal-balance-currency { background: #f7f9f3; border: 1px solid #e5ebe0; border-radius: 12px; padding: 16px; }
+.personal-balance-currency h4 { margin: 0 0 12px; font-size: 13px; color: #63766a; }
+.personal-balance-currency dl { display: grid; gap: 10px; margin: 0; }
+.personal-balance-currency dl > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.personal-balance-currency dt { color: #6c7b70; }
+.personal-balance-currency dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.balance-owes { color: #963e29; }
+.balance-owed { color: #356b4b; }
+.balance-net { border-top: 1px solid #e5ebe0; margin: 12px 0 0; padding-top: 10px; font-size: 13px; font-weight: 700; }
+.balance-net-settled { color: #356b4b; }
+.directed-debts ul { list-style: none; margin: 0; padding: 0; }
+.directed-debts li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 13px 0; border-top: 1px solid #edf0e9; }
+.directed-debts li > strong { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.balance-settled { margin: 0; }
 @media (max-width: 900px) { .workspace-grid { grid-template-columns: 1fr; } .sidebar-note { display: none; } }
 @media (max-width: 600px) { .workspace-heading { align-items: start; flex-direction: column; } .inline-form { flex-direction: column; } .inline-form button { width: 100%; } .member-list li { flex-wrap: wrap; } .tag { margin-left: 50px; } .participant-row { align-items: flex-start; flex-direction: column; gap: 6px; } .custom-share { width: 100%; padding-left: 24px; } }
 @media (max-width: 600px) { .expense-history-heading { align-items: flex-start; flex-direction: column; } .expense-summary-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; } .expense-detail-fields { gap: 12px; } }
+@media (max-width: 600px) { .balance-heading { align-items: flex-start; flex-direction: column; } .directed-debts li { align-items: flex-start; flex-direction: column; gap: 5px; } }
 @media (max-width: 720px) { main { padding: 32px 6%; } .site-header { padding: 18px 6%; flex-wrap: wrap; } .header-actions { flex-wrap: wrap; gap: 12px; } .auth-layout { grid-template-columns: 1fr; gap: 28px; } .account-card { max-width: none; } .hero-line { font-size: 44px; } .home-art, .small-print { display: none; } .hero-description { max-width: none; } .card { padding: 26px; } .site-footer { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

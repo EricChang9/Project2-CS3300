@@ -5,6 +5,7 @@ import InvitationShare from '../invitations/InvitationShare.jsx';
 import JoinHousehold from '../invitations/JoinHousehold.jsx';
 import ExpenseEntryForm from '../expenses/ExpenseEntryForm.jsx';
 import ExpenseHistory from '../expenses/ExpenseHistory.jsx';
+import HouseholdBalance from '../expenses/HouseholdBalance.jsx';
 
 function CreateHousehold() {
   const { create } = useHouseholds();
@@ -74,6 +75,7 @@ export default function HouseholdWorkspace() {
             </li>;
           })}</ul>
         </section> : !loading && !error && <section className="empty-home"><div className="empty-icon" aria-hidden="true">⌂</div><h2>Your home starts here.</h2><p className="muted">Create a household and bring your shared space together.</p></section>}
+      {selectedHousehold && <HouseholdBalance key={`balances-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
       {selectedHousehold && <ExpenseEntryForm key={`expense-entry-${selectedHousehold.id}`} household={selectedHousehold}
         onSaved={() => setExpenseRefresh(version => version + 1)} />}
       {selectedHousehold && <ExpenseHistory key={`expense-history-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
