@@ -1,5 +1,6 @@
 """Black-box integration cases: HTTP inputs/outputs only; no service/repository imports."""
 import concurrent.futures
+from datetime import datetime
 import json
 import os
 import time
@@ -112,7 +113,14 @@ class ApiCases(unittest.TestCase):
     def test_BBA15_expense_detail_round_trip(self):
         home=self.home();created=self.create(home,description='Round-trip receipt')
         detail=self.check('GET',f'/api/households/{home}/expenses/{created["id"]}')
-        self.assertEqual(created,detail);self.observations.append('all public expense fields match the create response')
+        # Firestore rounds down sub-microsecond precision. Compare instants at
+        # that documented precision, retaining exact equality for every other field.
+        # https://firebase.google.com/docs/firestore/manage-data/data-types
+        created_time=datetime.fromisoformat(created.pop('createdAt').replace('Z','+00:00'))
+        detail_time=datetime.fromisoformat(detail.pop('createdAt').replace('Z','+00:00'))
+        self.assertEqual(created_time,detail_time)
+        self.assertEqual(created,detail)
+        self.observations.append('expense fields match; createdAt matches at Firestore microsecond precision')
     def test_BBA16_cross_household_resource_id_is_rejected(self):
         first=self.home();second=self.home();expense=self.create(first)
         self.check('GET',f'/api/households/{second}/expenses/{expense["id"]}',404)

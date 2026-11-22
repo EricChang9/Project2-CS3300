@@ -87,6 +87,12 @@ cannot upload the checked-in local snapshot as current CI results. Local runs
 still update `docs/testing/evidence/latest.json` by default; use
 `--evidence-output /tmp/blackbox-evidence.json` to preserve that snapshot.
 
+BBA15 compares `createdAt` instants at Firestore's documented microsecond
+precision and all other fields exactly. The first Linux CI execution exposed
+the original oracle's incorrect nanosecond-string requirement; this is harness
+triage, excluded from product defect counts. See
+[Firestore data types](https://firebase.google.com/docs/firestore/manage-data/data-types).
+
 ## Rebuild the report
 
 ```sh
