@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/health", "/", "/index.html", "/assets/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/me").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/households").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/households/*/expenses", "/api/households/*/expenses/*").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households/*/expenses").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households/*/invitations", "/api/invitations/redeem").authenticated()

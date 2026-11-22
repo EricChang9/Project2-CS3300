@@ -20,7 +20,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.nullValue;
 
 @WebMvcTest(controllers = ExpenseController.class, properties = "app.firestore.enabled=true")
 @Import({SecurityConfig.class, FirebaseJwtConfiguration.class, TestIdentityConfiguration.class})
@@ -62,5 +64,48 @@ class ExpenseControllerTest {
                     .andExpect(status().isBadRequest());
         }
         verifyNoInteractions(service);
+    }
+
+    @Test void returnsHistoryPagesAndExpenseDetailsForTheAuthenticatedMember() throws Exception {
+        var expense = new Expense("expense-id", "home", "Power", 101L, "USD", "alice",
+                List.of("alice", "bob"), LocalDate.parse("2026-11-17"), ExpenseCategory.UTILITIES,
+                SplitType.EQUAL, Map.of("alice", 51L, "bob", 50L), "alice",
+                Instant.parse("2026-11-18T12:00:00Z"));
+        when(service.list("home", "alice", 2, "opaque-cursor"))
+                .thenReturn(new ExpensePage(List.of(expense), "next-cursor"));
+        mvc.perform(get("/api/households/home/expenses").param("limit", "2").param("cursor", "opaque-cursor")
+                        .header("Authorization", "Bearer " + token("alice")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].id").value("expense-id"))
+                .andExpect(jsonPath("$.items[0].payerId").value("alice"))
+                .andExpect(jsonPath("$.items[0].sharesCents.bob").value(50))
+                .andExpect(jsonPath("$.nextCursor").value("next-cursor"));
+        verify(service).list("home", "alice", 2, "opaque-cursor");
+
+        when(service.find("home", "alice", "expense-id")).thenReturn(expense);
+        mvc.perform(get("/api/households/home/expenses/expense-id")
+                        .header("Authorization", "Bearer " + token("alice")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Power"))
+                .andExpect(jsonPath("$.amountCents").value(101))
+                .andExpect(jsonPath("$.category").value("UTILITIES"))
+                .andExpect(jsonPath("$.expenseDate").value("2026-11-17"));
+        verify(service).find("home", "alice", "expense-id");
+    }
+
+    @Test void returnsEmptyHistoryAndHidesMissingExpense() throws Exception {
+        when(service.list("home", "alice", ExpenseService.DEFAULT_HISTORY_LIMIT, null))
+                .thenReturn(new ExpensePage(List.of(), null));
+        mvc.perform(get("/api/households/home/expenses").header("Authorization", "Bearer " + token("alice")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(0))
+                .andExpect(jsonPath("$.nextCursor").value(nullValue()));
+
+        when(service.find("home", "alice", "missing"))
+                .thenThrow(new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND));
+        mvc.perform(get("/api/households/home/expenses/missing")
+                        .header("Authorization", "Bearer " + token("alice")))
+                .andExpect(status().isNotFound());
     }
 }

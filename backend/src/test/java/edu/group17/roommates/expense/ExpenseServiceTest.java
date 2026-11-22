@@ -71,4 +71,10 @@ class ExpenseServiceTest {
                 () -> service().create("home", " ", zero));
         verifyNoInteractions(store);
     }
+
+    @Test void boundsHistoryPageSizeBeforeQueryingStorage() {
+        assertThrows(IllegalArgumentException.class, () -> service().list("home", "alice", 0, null));
+        assertThrows(IllegalArgumentException.class, () -> service().list("home", "alice", 51, null));
+        verifyNoInteractions(store);
+    }
 }
