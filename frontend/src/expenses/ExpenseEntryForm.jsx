@@ -31,7 +31,7 @@ function failureMessage(error) {
   return 'We could not save this expense. Please try again.';
 }
 
-export default function ExpenseEntryForm({ household }) {
+export default function ExpenseEntryForm({ household, onSaved }) {
   const { user, request } = useAuth();
   const members = useMemo(() => household.members || [], [household.members]);
   const memberIds = useMemo(() => members.map(member => member.uid), [members]);
@@ -132,6 +132,7 @@ export default function ExpenseEntryForm({ household }) {
       });
       setSavedExpense(created);
       resetForm();
+      onSaved?.(created);
     } catch (failure) {
       if (failure.name !== 'AbortError') setError(failureMessage(failure));
     } finally {
