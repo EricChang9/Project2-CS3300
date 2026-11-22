@@ -1,0 +1,3 @@
+defect_id,source_case,status,severity,description,reproduction,assigned_to,resolution,evidence
+BBD01,BBA12,Confirmed external behavior,High,Fractional cents are silently truncated rather than rejected,POST expense amountCents=1.5 with otherwise valid fields returns 201 and amountCents=1,Unassigned,Open; production code unchanged by testing PR,docs/testing/evidence/latest.json
+BBD02,BBA05 BBA07 BBA13 BBA14 BBA16,Confirmed external behavior,Medium,Real HTTP error statuses differ from documented 400/404 contracts and return 403,Use a valid token with an unknown invitation code or substitute another household expense ID; HTTP 403 instead of 404,Unassigned,Open; shared error-response symptom grouped conservatively and root cause unconfirmed,docs/testing/evidence/latest.json

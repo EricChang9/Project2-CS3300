@@ -1,0 +1,1 @@
+case_id,author,method,requirement_ids,technique,input,expected_before_run,actual,status,design_minutes,setup_minutes,execution_minutes,repair_minutes,unique_defect_ids,evidence,ai_used,notes

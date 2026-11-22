@@ -1,0 +1,23 @@
+{
+  "passed": 29,
+  "total_cases": 35,
+  "failed_cases": [
+    "BBA05",
+    "BBA07",
+    "BBA12",
+    "BBA13",
+    "BBA14",
+    "BBA16"
+  ],
+  "confirmed_issue_groups": 2,
+  "implemented_groups_touched": 12,
+  "implemented_groups": 12,
+  "proposal_groups": 17,
+  "authoring_window_seconds": 1147,
+  "authoring_scope": "Instrumented implementation window starts after initial template and repository reconnaissance; includes tool waits and setup; not active human-equivalent development time.",
+  "traditional_rows": 0,
+  "comparative_speedup": null,
+  "whitebox_status": "Separate PR #59; not evaluated here",
+  "pdf_pages": 22,
+  "pdf_text_verified": true
+}

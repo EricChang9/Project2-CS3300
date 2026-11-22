@@ -5,6 +5,8 @@ target/
 coverage/
 playwright-report/
 test-results/
+tests/blackbox/.artifacts/
+__pycache__/
 # Local configuration and credentials
 .env
 .env.*
