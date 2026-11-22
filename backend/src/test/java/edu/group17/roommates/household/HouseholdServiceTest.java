@@ -1,10 +1,15 @@
 package edu.group17.roommates.household;
 
-import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class HouseholdServiceTest {
     private final HouseholdStore store = mock(HouseholdStore.class);
@@ -35,5 +40,29 @@ class HouseholdServiceTest {
     void propagatesFailureWithoutReturningACompletedHousehold() {
         when(store.create("Home", "alice")).thenThrow(new HouseholdStorageException(new RuntimeException()));
         assertThrows(HouseholdStorageException.class, () -> service.create("Home", "alice"));
+    }
+
+    @Test
+    void acceptsAnEightyCharacterNameAndTrimsIt() {
+        String uid = "alice";
+        String trimmedName = "x".repeat(79);
+        String rawName = trimmedName + " ";
+
+        Household expected = new Household("id", trimmedName, uid, Instant.EPOCH, List.of());
+        when(store.create(trimmedName, uid)).thenReturn(expected);
+
+        Household actual = service.create(rawName, uid);
+
+        assertEquals(expected, actual);
+        verify(store).create(trimmedName, uid);
+    }
+
+    @Test
+    void rejectsAnEightyOneCharacterNameBeforeTrimming() {
+        String rawName = "x".repeat(80) + " ";
+
+        assertThrows(IllegalArgumentException.class, () -> service.create(rawName, "alice"));
+
+        verifyNoInteractions(store);
     }
 }
