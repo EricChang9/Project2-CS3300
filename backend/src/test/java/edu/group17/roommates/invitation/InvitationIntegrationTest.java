@@ -86,6 +86,28 @@ class InvitationIntegrationTest {
                 .get().get(10, TimeUnit.SECONDS).size());
     }
 
+
+    // Manual test created during AI Integration in Testing assignment - Robert Ives
+    // loosely based upon rejectsMissingAndExpiredCodesWithoutCreatingMembership(), but testing the case where the expiry is exactly the current time, which should fail
+    @Test void rejectsCodeAtExactExpiryWithoutCreatingMembership() throws Exception {
+        Instant issuedAt = Instant.parse("2030-01-01T00:00:00Z");
+        var issuer = new InvitationService(firestore, access, Clock.fixed(issuedAt, ZoneOffset.UTC));
+
+        var invite = issuer.create(home.id(), owner);
+
+        var redeemer = new InvitationService(firestore, access, Clock.fixed(invite.expiresAt(), ZoneOffset.UTC));
+
+        var failure = assertThrows(ResponseStatusException.class, () -> redeemer.redeem(invite.code(), roommate));
+
+        assertEquals(410, failure.getStatusCode().value());
+        assertTrue(households.list(roommate).isEmpty());
+        assertEquals(1, firestore.collection("households")
+                .document(home.id())
+                .collection("members")
+                .get().get(10, TimeUnit.SECONDS)
+                .size());
+    }
+
     @Test void concurrentRedemptionCreatesOnlyOneMembership() throws Exception {
         String code = invitations.create(home.id(), owner).code();
         try (var executor = Executors.newFixedThreadPool(4)) {
