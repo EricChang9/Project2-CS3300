@@ -207,6 +207,25 @@ Credentials with a Cloud Run service account.
 these rules, so backend authorization must check household membership for every
 read and write. See [backend setup](backend/README.md) for the emulator integration test.
 
+## Creating household expenses
+
+Authenticated household members can create expenses with
+`POST /api/households/{householdId}/expenses`. Amounts and calculated shares are
+integer cents; `currency` is an uppercase ISO 4217 code with exactly two
+minor-unit digits. `expenseDate` is an ISO-8601 calendar
+date (`YYYY-MM-DD`) in the household's chosen local calendar, with no timezone
+conversion. Categories use the stable codes `HOUSING`, `UTILITIES`,
+`GROCERIES`, `HOUSEHOLD_SUPPLIES`, `TRANSPORTATION`, `ENTERTAINMENT`, and
+`OTHER`. Summaries should group by currency and category before totaling.
+
+The authenticated token supplies `createdBy`. The server checks that the
+creator, payer, and every participant are household members, calculates shares
+with the existing equal/custom split strategies, and writes the expense plus
+its per-participant `shares` documents atomically under
+`households/{householdId}/expenses/{expenseId}`. Equal splits distribute
+remainder cents in participant order. Custom allocations must include exactly
+the participant IDs and sum to `amountCents`.
+
 ## Docker and Cloud Run
 
 From the repository root:
