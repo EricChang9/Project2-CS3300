@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import App from '../App.jsx';
 import { fakeAuth, mockApi, response, sdkUser } from '../test/auth.js';
@@ -40,7 +40,7 @@ describe('household workspace', () => {
     expect(screen.getByRole('heading', { name: 'Cedar' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Maple' })).not.toBeInTheDocument();
     expect(screen.queryByText('You', { exact: true })).not.toBeInTheDocument();
-    expect(screen.getByText('bob', { exact: true })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Cedar' })).getByText('bob', { exact: true })).toBeInTheDocument();
   });
 
   it('shows usernames instead of generic housemate labels or internal IDs', async () => {
@@ -48,9 +48,10 @@ describe('household workspace', () => {
     household.members = [{ uid: 'alice', username: 'alice123' }, { uid: 'opaque-firebase-id', username: 'Joseph' }];
     mockApi(path => path === '/api/households' ? response([household]) : undefined);
     render(<App authClient={fakeAuth(sdkUser())} />);
-    expect(await screen.findByText('Joseph', { exact: true })).toBeInTheDocument();
-    expect(screen.getByText('alice123', { exact: true })).toBeInTheDocument();
-    expect(screen.getByText('You', { exact: true })).toBeInTheDocument();
+    const memberCard = await screen.findByRole('region', { name: 'Maple' });
+    expect(within(memberCard).getByText('Joseph', { exact: true })).toBeInTheDocument();
+    expect(within(memberCard).getByText('alice123', { exact: true })).toBeInTheDocument();
+    expect(within(memberCard).getByText('You', { exact: true })).toBeInTheDocument();
     expect(screen.queryByText('Housemate', { exact: true })).not.toBeInTheDocument();
     expect(screen.queryByText('opaque-firebase-id', { exact: true })).not.toBeInTheDocument();
   });
