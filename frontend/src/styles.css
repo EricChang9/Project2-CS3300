@@ -147,3 +147,27 @@ input::placeholder { color: #97a397; }
 @media (max-width: 600px) { .balance-heading { align-items: flex-start; flex-direction: column; } .directed-debts li { align-items: flex-start; flex-direction: column; gap: 5px; } }
 @media (max-width: 720px) { main { padding: 32px 6%; } .site-header { padding: 18px 6%; flex-wrap: wrap; } .header-actions { flex-wrap: wrap; gap: 12px; } .auth-layout { grid-template-columns: 1fr; gap: 28px; } .account-card { max-width: none; } .hero-line { font-size: 44px; } .home-art, .small-print { display: none; } .hero-description { max-width: none; } .card { padding: 26px; } .site-footer { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+
+.payment-requests-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.payment-requests-heading .eyebrow { margin-bottom: 8px; }
+.payment-requests-heading h2 { margin-bottom: 0; }
+.payment-request-groups { display: grid; gap: 20px; margin-top: 18px; }
+.payment-request-group h3 { margin: 0 0 8px; }
+.payment-request-group ul { list-style: none; margin: 0; padding: 0; }
+.payment-request-group li { border-top: 1px solid #edf0e9; }
+.payment-request-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; width: 100%; text-align: left; padding: 14px 0; border: 0; background: transparent; color: inherit; }
+.payment-request-item:hover strong, .payment-request-item:focus-visible strong { color: #226d55; text-decoration: underline; }
+.payment-request-item > span:last-child { flex-shrink: 0; font-weight: 700; }
+.payment-request-detail { margin-top: 18px; }
+.payment-request-detail h3 { margin-bottom: 12px; }
+.payment-request-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.payment-request-fields dt { color: #778477; font-size: 12px; }
+.payment-request-fields dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.expense-request { border-top: 1px solid #edf0e9; margin-top: 22px; padding-top: 12px; }
+.expense-request h3 { margin-bottom: 12px; }
+.expense-request form { display: grid; gap: 10px; }
+.expense-request form p { margin: 0; }
+.expense-request input { max-width: 240px; }
+.request-share-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 600px) { .payment-requests-heading { align-items: flex-start; flex-direction: column; } .payment-request-fields { grid-template-columns: 1fr; } }
