@@ -3,6 +3,7 @@ package edu.group17.roommates.balance;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.Transaction;
 import edu.group17.roommates.household.HouseholdAccessGuard;
 import edu.group17.roommates.household.HouseholdStorageException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +36,16 @@ public class FirestoreSettlementStore implements SettlementStore {
         access.requireMember(householdId, uid);
         var documents = await(firestore.collection("households").document(householdId)
                 .collection("settlements").get()).getDocuments();
+        return fromDocuments(householdId, documents);
+    }
+
+    public List<Settlement> listForHousehold(Transaction transaction, String householdId) {
+        var documents = await(transaction.get(firestore.collection("households").document(householdId)
+                .collection("settlements"))).getDocuments();
+        return fromDocuments(householdId, documents);
+    }
+
+    private List<Settlement> fromDocuments(String householdId, List<? extends DocumentSnapshot> documents) {
         var settlements = new ArrayList<Settlement>(documents.size());
         for (DocumentSnapshot document : documents) {
             String storedHouseholdId = document.getString("householdId");

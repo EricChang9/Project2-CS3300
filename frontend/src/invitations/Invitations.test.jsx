@@ -25,6 +25,32 @@ describe('household invitations', () => {
     expect(call[1].headers.get('Authorization')).toBe('Bearer test-token');
   });
 
+  // Manual test created during AI Integration in Testing assignment - Robert Ives
+  // based upon 'requests a code for the selected household and copies it' above, tests exactly at expiry for failure
+  // in 99% of usecases this shouldn't matter, but the idea is someone leaving this page open for days and coming back to it and copying a code
+  it('blocks copying an invite at its exact expiry time', async () => {
+    const writeText = vi.fn().mockResolvedValue();
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+    const fetchMock = mockApi(path => {
+      if (path === '/api/households') return response([home('maple', 'Maple')]);
+      if (path === '/api/households/maple/invitations') return response(invitation, 201);
+    });
+    render(<App authClient={fakeAuth(sdkUser())} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Create invitation code' }));
+    expect(await screen.findByLabelText('Invitation code')).toHaveValue(invitation.code);
+    
+    // the specific code for this test starts here
+    const now = vi.spyOn(Date, 'now').mockReturnValue(Date.parse(invitation.expiresAt));
+
+    try {
+      fireEvent.click(screen.getByRole('button', { name: 'Copy code' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('This code has expired. Create a new invitation.');
+      expect(writeText).not.toHaveBeenCalled();
+    } finally {
+      now.mockRestore();
+    }
+  });
+
   it('joins from an empty account, refreshes membership, and selects the joined household', async () => {
     let joined = false;
     const fetchMock = mockApi(path => {

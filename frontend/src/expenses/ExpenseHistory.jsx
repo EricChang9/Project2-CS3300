@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { formatCents } from './money.js';
+import RequestShare from '../paymentRequests/RequestShare.jsx';
 
 const CATEGORY_LABELS = {
   HOUSING: 'Housing', UTILITIES: 'Utilities', GROCERIES: 'Groceries',
@@ -56,7 +57,8 @@ function ExpenseFields({ expense, household, user, detail = false }) {
   </>;
 }
 
-export default function ExpenseHistory({ household, refreshToken = 0 }) {
+export default function ExpenseHistory({ household, refreshToken = 0, paymentRequests = [],
+  paymentRequestsLoading = false, onRequestCreated }) {
   const { user, request } = useAuth();
   const [items, setItems] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
@@ -152,7 +154,9 @@ export default function ExpenseHistory({ household, refreshToken = 0 }) {
       <button type="button" className="text-button" onClick={() => setDetailId(null)}>← Back to expenses</button>
       {detailLoading ? <p role="status">Loading expense…</p>
         : detailError ? <div role="alert" className="error">{detailError} <button type="button" className="text-button" onClick={() => setDetailVersion(version => version + 1)}>Try again</button></div>
-          : detail && <><h3>{detail.description}</h3><ExpenseFields expense={detail} household={household} user={user} detail /></>}
+          : detail && <><h3>{detail.description}</h3><ExpenseFields expense={detail} household={household} user={user} detail />
+            <RequestShare key={detail.id} expense={detail} household={household} requests={paymentRequests}
+              loading={paymentRequestsLoading} onCreated={onRequestCreated} /></>}
     </div> : <>
       {error && <p role="alert" className="error">{error}</p>}
       {loading ? <p role="status">Loading expenses…</p>

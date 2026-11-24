@@ -41,6 +41,17 @@ class HouseholdAccessGuardTest {
         assertThrows(ResponseStatusException.class, () -> guard.requireMember("home", "alice"));
     }
 
+    // Manual test created during AI Integration in Testing assignment - Robert Ives
+    // this verifies that the access guard rejects any requests where the UID stored differs from the caller's UID
+    @Test void deniesMembershipWhenStoredUidDoesNotMatchCaller() {
+        var resource = mock(DocumentReference.class);
+        when(member.getString("uid")).thenReturn("bob");
+
+        var failure = assertThrows(ResponseStatusException.class, () -> guard.requireResource("home", "alice", resource));
+        assertEquals(404, failure.getStatusCode().value());
+        verifyNoInteractions(resource);
+    }
+
     @Test void checksNestedResourceHouseholdAfterMembership() {
         var reference = mock(DocumentReference.class); var resource = mock(DocumentSnapshot.class);
         when(reference.get()).thenReturn(ApiFutures.immediateFuture(resource)); when(resource.exists()).thenReturn(true);
