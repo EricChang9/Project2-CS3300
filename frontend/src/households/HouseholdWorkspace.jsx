@@ -5,6 +5,7 @@ import InvitationShare from '../invitations/InvitationShare.jsx';
 import JoinHousehold from '../invitations/JoinHousehold.jsx';
 import ExpenseEntryForm from '../expenses/ExpenseEntryForm.jsx';
 import ExpenseHistory from '../expenses/ExpenseHistory.jsx';
+import MonthlySpending from '../expenses/MonthlySpending.jsx';
 import HouseholdBalance from '../expenses/HouseholdBalance.jsx';
 
 function CreateHousehold() {
@@ -79,6 +80,7 @@ export default function HouseholdWorkspace() {
       {selectedHousehold && <ExpenseEntryForm key={`expense-entry-${selectedHousehold.id}`} household={selectedHousehold}
         onSaved={() => setExpenseRefresh(version => version + 1)} />}
       {selectedHousehold && <ExpenseHistory key={`expense-history-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
+      {selectedHousehold && <MonthlySpending key={`monthly-spending-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
       {selectedHousehold && <InvitationShare key={`invitation-${selectedHousehold.id}`} household={selectedHousehold} />}
       <JoinHousehold />
       <CreateHousehold />

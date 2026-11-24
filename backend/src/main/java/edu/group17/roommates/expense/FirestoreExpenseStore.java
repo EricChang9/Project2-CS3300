@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.time.YearMonth;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +94,23 @@ public class FirestoreExpenseStore implements ExpenseStore {
                 .collection("expenses").document(expenseId);
         var document = access.requireResource(householdId, uid, reference);
         return toExpense(document);
+    }
+
+    @Override
+    public List<ExpenseSummaryItem> listForSummary(String householdId, String uid, YearMonth month) {
+        access.requireMember(householdId, uid);
+        var documents = await(firestore.collection("households").document(householdId)
+                .collection("expenses")
+                .whereGreaterThanOrEqualTo("expenseDate", month.atDay(1).toString())
+                .whereLessThan("expenseDate", month.plusMonths(1).atDay(1).toString())
+                .get()).getDocuments();
+        var items = new ArrayList<ExpenseSummaryItem>(documents.size());
+        for (var document : documents) {
+            if (!householdId.equals(document.getString("householdId"))) throw hidden();
+            items.add(new ExpenseSummaryItem(document.getLong("amountCents"),
+                    document.getString("currency"), ExpenseCategory.valueOf(document.getString("category"))));
+        }
+        return List.copyOf(items);
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 import java.time.Clock;
+import java.time.YearMonth;
 import java.util.*;
 
 @Service
@@ -84,6 +85,42 @@ public class ExpenseService {
             throw new IllegalArgumentException("Expense history limit must be between 1 and " + MAX_HISTORY_LIMIT);
         }
         return store.list(householdId, callerUid, limit, cursor);
+    }
+
+    public MonthlySpending summary(String householdId, String callerUid, String monthValue) {
+        requireIdentity(callerUid);
+        if (householdId == null || !householdId.matches("[A-Za-z0-9_-]{1,128}")) throw notFound();
+        if (monthValue == null || !monthValue.matches("[0-9]{4}-(0[1-9]|1[0-2])")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Month must use YYYY-MM");
+        }
+        YearMonth month = YearMonth.parse(monthValue);
+        var amounts = new TreeMap<String, Map<ExpenseCategory, Long>>();
+        var counts = new HashMap<String, Integer>();
+        try {
+            for (var item : store.listForSummary(householdId, callerUid, month)) {
+                var categories = amounts.computeIfAbsent(item.currency(), key -> new EnumMap<>(ExpenseCategory.class));
+                categories.merge(item.category(), item.amountCents(), Math::addExact);
+                counts.merge(item.currency(), 1, Math::addExact);
+            }
+            var currencies = new ArrayList<MonthlySpending.CurrencyTotal>();
+            for (var entry : amounts.entrySet()) {
+                long total = 0;
+                var categories = new ArrayList<MonthlySpending.CategoryTotal>();
+                for (var category : ExpenseCategory.values()) {
+                    Long amount = entry.getValue().get(category);
+                    if (amount != null) {
+                        total = Math.addExact(total, amount);
+                        categories.add(new MonthlySpending.CategoryTotal(category, amount));
+                    }
+                }
+                currencies.add(new MonthlySpending.CurrencyTotal(entry.getKey(), total,
+                        counts.get(entry.getKey()), List.copyOf(categories)));
+            }
+            return new MonthlySpending(month.toString(), List.copyOf(currencies));
+        } catch (ArithmeticException exception) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Monthly spending exceeds the supported integer-cent range", exception);
+        }
     }
 
     public Expense find(String householdId, String callerUid, String expenseId) {

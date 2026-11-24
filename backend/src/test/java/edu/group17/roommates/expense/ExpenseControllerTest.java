@@ -94,6 +94,22 @@ class ExpenseControllerTest {
         verify(service).find("home", "alice", "expense-id");
     }
 
+    @Test void returnsMonthlySummaryForTheAuthenticatedMember() throws Exception {
+        when(service.summary("home", "alice", "2026-11"))
+                .thenReturn(new MonthlySpending("2026-11", List.of(
+                        new MonthlySpending.CurrencyTotal("USD", 1250L, 2, List.of(
+                                new MonthlySpending.CategoryTotal(ExpenseCategory.GROCERIES, 1250L))))));
+        mvc.perform(get("/api/households/home/expenses/summary").param("month", "2026-11")
+                        .header("Authorization", "Bearer " + token("alice")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.month").value("2026-11"))
+                .andExpect(jsonPath("$.currencies[0].totalCents").value(1250))
+                .andExpect(jsonPath("$.currencies[0].categories[0].category").value("GROCERIES"));
+        verify(service).summary("home", "alice", "2026-11");
+        mvc.perform(get("/api/households/home/expenses/summary").param("month", "2026-11"))
+                .andExpect(status().isUnauthorized());
+    }
+
     @Test void returnsEmptyHistoryAndHidesMissingExpense() throws Exception {
         when(service.list("home", "alice", ExpenseService.DEFAULT_HISTORY_LIMIT, null))
                 .thenReturn(new ExpensePage(List.of(), null));

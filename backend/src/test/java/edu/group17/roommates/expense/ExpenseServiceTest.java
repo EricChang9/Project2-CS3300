@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,45 @@ class ExpenseServiceTest {
         assertThrows(org.springframework.web.server.ResponseStatusException.class,
                 () -> service().create("home", " ", zero));
         verifyNoInteractions(store);
+    }
+
+    @Test void summarizesCategoriesByMonthWithoutMixingCurrencies() {
+        when(store.listForSummary("home", "alice", YearMonth.parse("2026-11"))).thenReturn(List.of(
+                new ExpenseSummaryItem(1000L, "USD", ExpenseCategory.GROCERIES),
+                new ExpenseSummaryItem(250L, "USD", ExpenseCategory.GROCERIES),
+                new ExpenseSummaryItem(750L, "USD", ExpenseCategory.UTILITIES),
+                new ExpenseSummaryItem(500L, "EUR", ExpenseCategory.HOUSING)));
+
+        var summary = service().summary("home", "alice", "2026-11");
+
+        assertEquals("2026-11", summary.month());
+        assertEquals(List.of("EUR", "USD"), summary.currencies().stream()
+                .map(MonthlySpending.CurrencyTotal::currency).toList());
+        var eur = summary.currencies().get(0);
+        assertEquals(500L, eur.totalCents());
+        assertEquals(1, eur.expenseCount());
+        assertEquals(List.of(new MonthlySpending.CategoryTotal(ExpenseCategory.HOUSING, 500L)), eur.categories());
+        var usd = summary.currencies().get(1);
+        assertEquals(2000L, usd.totalCents());
+        assertEquals(3, usd.expenseCount());
+        assertEquals(List.of(new MonthlySpending.CategoryTotal(ExpenseCategory.UTILITIES, 750L),
+                new MonthlySpending.CategoryTotal(ExpenseCategory.GROCERIES, 1250L)), usd.categories());
+    }
+
+    @Test void rejectsInvalidSummaryMonthsBeforeReadingStorage() {
+        for (String month : List.of("2026-1", "2026-00", "2026-13", "invalid")) {
+            var failure = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                    () -> service().summary("home", "alice", month));
+            assertEquals(400, failure.getStatusCode().value());
+        }
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> service().summary("home", " ", "2026-11"));
+        verifyNoInteractions(store);
+    }
+
+    @Test void handlesEmptyMonthlySummary() {
+        when(store.listForSummary("home", "alice", YearMonth.parse("2026-10"))).thenReturn(List.of());
+        assertEquals(List.of(), service().summary("home", "alice", "2026-10").currencies());
     }
 
     @Test void boundsHistoryPageSizeBeforeQueryingStorage() {
