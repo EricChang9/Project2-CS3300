@@ -56,7 +56,8 @@ describe('monthly spending', () => {
       }
     });
     render(<App authClient={fakeAuth(sdkUser())} />);
-    expect(await within(panel()).findByText('No expenses recorded for this month.')).toBeInTheDocument();
+    const view = await screen.findByRole('region', { name: 'Monthly spending' });
+    expect(await within(view).findByText('No expenses recorded for this month.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Internet bill' } });
     fireEvent.change(screen.getByLabelText('Amount (USD)'), { target: { value: '3.00' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save expense' }));
@@ -69,7 +70,8 @@ describe('monthly spending', () => {
     mockApi(requestPath => requestPath === '/api/households' ? response([home('maple')])
       : requestPath === path('maple', month()) ? failed ? response({}, 503) : response(spending(1500)) : undefined);
     render(<App authClient={fakeAuth(sdkUser())} />);
-    expect(await within(panel()).findByRole('alert')).toHaveTextContent('We could not load monthly spending.');
+    const view = await screen.findByRole('region', { name: 'Monthly spending' });
+    expect(await within(view).findByRole('alert')).toHaveTextContent('We could not load monthly spending.');
     failed = false;
     fireEvent.click(within(panel()).getByRole('button', { name: 'Try again' }));
     await waitFor(() => expect(within(panel()).getByText('$15.00')).toBeInTheDocument());
