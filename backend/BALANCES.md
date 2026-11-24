@@ -27,8 +27,13 @@ Amounts use integer minor units. The expense API currently accepts ISO 4217
 currencies with two fraction digits. Balance arithmetic uses signed 64-bit
 integers; an aggregate overflow returns `422` rather than a rounded result.
 
-Successful payment records have a read seam in `SettlementStore`. Future payment
-writes should create documents at
+Successful payment records have a read seam in `SettlementStore`. The application
+also supports `POST /api/households/{householdId}/settlements` with a Firebase ID
+token and JSON containing `toUid`, `currency`, positive integer `amountCents`,
+and a UUID `requestId`. The authenticated user is always the sender. Payments
+must not exceed the sender's current net debt to the recipient, and repeated
+requests with the same UUID and details create only one settlement. The feature
+records a simulated payment; it does not transfer money. Payments are stored at
 `households/{householdId}/settlements/{settlementId}` with `householdId`,
 `fromUid`, `toUid`, `currency`, and positive integer `amountCents`. `fromUid` is
 the debtor and `toUid` is the creditor. The calculator subtracts each successful

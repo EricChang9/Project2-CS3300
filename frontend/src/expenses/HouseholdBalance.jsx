@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { formatBalanceCents } from './money.js';
 
@@ -20,6 +20,11 @@ export default function HouseholdBalance({ household, refreshToken = 0 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retryVersion, setRetryVersion] = useState(0);
+  const [paymentVersion, setPaymentVersion] = useState(0);
+  const [paymentLoading, setPaymentLoading] = useState('');
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState('');
+  const paymentRequest = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -40,7 +45,33 @@ export default function HouseholdBalance({ household, refreshToken = 0 }) {
     }
     load();
     return () => controller.abort();
-  }, [household.id, refreshToken, request, retryVersion]);
+  }, [household.id, refreshToken, request, retryVersion, paymentVersion]);
+
+  async function recordPayment(debt) {
+    if (paymentLoading) return;
+    const key = `${household.id}/${debt.debtorId}/${debt.creditorId}/${debt.currency}/${debt.amountCents}`;
+    if (paymentRequest.current?.key !== key) {
+      paymentRequest.current = { key, requestId: crypto.randomUUID() };
+    }
+    setPaymentLoading(key);
+    setPaymentError('');
+    setPaymentNotice('');
+    try {
+      await request(`/api/households/${encodeURIComponent(household.id)}/settlements`, {
+        method: 'POST',
+        body: JSON.stringify({ toUid: debt.creditorId, currency: debt.currency,
+          amountCents: debt.amountCents, requestId: paymentRequest.current.requestId }),
+      });
+      paymentRequest.current = null;
+      setPaymentNotice('Simulated payment recorded. No money was transferred.');
+      setPaymentVersion(version => version + 1);
+    } catch (failure) {
+      setPaymentError(failure.status === 409 ? 'The balance has changed. Refresh balances before trying again.'
+        : 'We could not record the simulated payment. Please try again.');
+    } finally {
+      setPaymentLoading('');
+    }
+  }
 
   const members = household.members || [];
   const currentBalance = balance?.members?.find(member => member.memberId === user.uid);
@@ -84,6 +115,8 @@ export default function HouseholdBalance({ household, refreshToken = 0 }) {
             </section>
             <section className="directed-debts" aria-labelledby="directed-debts-title">
               <h3 id="directed-debts-title">Outstanding between housemates</h3>
+              {paymentError && <p className="error" role="alert">{paymentError}</p>}
+              {paymentNotice && <p className="notice" role="status">{paymentNotice}</p>}
               {debts.length === 0 ? <p className="notice balance-settled" role="status">Everyone is settled up.</p>
                 : <ul>{debts.map((debt, index) => {
                   const debtor = members.find(member => member.uid === debt.debtorId);
@@ -91,8 +124,15 @@ export default function HouseholdBalance({ household, refreshToken = 0 }) {
                   return <li key={`${debt.currency}-${debt.debtorId}-${debt.creditorId}-${index}`}>
                     <span><strong>{memberName(debtor, user)}</strong> owes <strong>{memberName(creditor, user)}</strong></span>
                     <strong>{formatBalanceCents(debt.amountCents, debt.currency)}</strong>
+                    {debt.debtorId === user.uid && <button type="button" className="secondary"
+                      disabled={Boolean(paymentLoading) || loading} onClick={() => recordPayment(debt)}>
+                      {paymentLoading === `${household.id}/${debt.debtorId}/${debt.creditorId}/${debt.currency}/${debt.amountCents}`
+                        ? 'Recording…' : 'Mark paid (demo)'}
+                    </button>}
                   </li>;
                 })}</ul>}
+              {debts.some(debt => debt.debtorId === user.uid) &&
+                <p className="field-help">Demo only. This records a settlement without transferring money.</p>}
             </section>
           </>}
   </section>;
