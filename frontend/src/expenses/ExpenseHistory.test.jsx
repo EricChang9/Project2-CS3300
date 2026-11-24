@@ -115,9 +115,10 @@ describe('expense history and details', () => {
       if (expensePath(path)) return failed ? response({}, 503) : page([]);
     });
     render(<App authClient={fakeAuth(sdkUser())} />);
-    expect(await screen.findByRole('alert')).toHaveTextContent('We could not load household expenses.');
+    const history = await screen.findByRole('region', { name: 'Expense history' });
+    expect(await within(history).findByRole('alert')).toHaveTextContent('We could not load household expenses.');
     failed = false;
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    fireEvent.click(within(history).getByRole('button', { name: 'Try again' }));
     expect(await screen.findByText('No expenses have been recorded for this household yet.')).toBeInTheDocument();
   });
 });

@@ -32,6 +32,9 @@ export function mockApi(handler = () => undefined) {
     if (path === '/api/health') return response({ status: 'UP' });
     if (path === '/api/me') return response({ uid: 'alice', email: 'alice@example.com', displayName: 'Alice' });
     if (path === '/api/households') return response([]);
+    if (/^\/api\/households\/[^/]+\/expenses\/summary\?month=/.test(path)) {
+      return response({ month: path.split('month=')[1], currencies: [] });
+    }
     if (/^\/api\/households\/[^/]+\/expenses(?:\/[^/]+)?(?:\?.*)?$/.test(path)) {
       return path.includes('?') || /\/expenses\/[^/]+$/.test(path)
         ? response({ id: path.split('/').at(-1), description: 'Test expense', amountCents: 100, sharesCents: {} })

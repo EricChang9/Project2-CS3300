@@ -37,6 +37,12 @@ public class ExpenseController {
         return service.list(householdId, identity.getSubject(), limit, cursor);
     }
 
+    @GetMapping("/api/households/{householdId}/expenses/summary")
+    public MonthlySpending summary(@PathVariable String householdId, @RequestParam String month,
+                                   @AuthenticationPrincipal Jwt identity) {
+        return service.summary(householdId, identity.getSubject(), month);
+    }
+
     @GetMapping("/api/households/{householdId}/expenses/{expenseId}")
     public Expense find(@PathVariable String householdId, @PathVariable String expenseId,
                         @AuthenticationPrincipal Jwt identity) {

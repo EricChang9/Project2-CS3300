@@ -5,6 +5,7 @@ import InvitationShare from '../invitations/InvitationShare.jsx';
 import JoinHousehold from '../invitations/JoinHousehold.jsx';
 import ExpenseEntryForm from '../expenses/ExpenseEntryForm.jsx';
 import ExpenseHistory from '../expenses/ExpenseHistory.jsx';
+import MonthlySpending from '../expenses/MonthlySpending.jsx';
 import HouseholdBalance from '../expenses/HouseholdBalance.jsx';
 import PaymentRequests from '../paymentRequests/PaymentRequests.jsx';
 import usePaymentRequests from '../paymentRequests/usePaymentRequests.js';
