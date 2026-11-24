@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import App from '../App.jsx';
 import { fakeAuth, mockApi, response, sdkUser } from '../test/auth.js';
 
@@ -121,5 +121,70 @@ describe('household balance view', () => {
     expect(await within(panel()).findByText('Everyone is settled up.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Cedar House' })).toBeInTheDocument();
     await waitFor(() => expect(within(panel()).queryByText('You’re owed $1.50')).not.toBeInTheDocument());
+  });
+});
+
+describe('simulated payment settlement', () => {
+  it('records a payment for the current user and refreshes the balance', async () => {
+    vi.stubGlobal('crypto', { randomUUID: () => 'bd0f6a7b-7836-4851-a5ea-3542da3b287f' });
+    let paid = false;
+    const api = mockApi((path, options) => {
+      if (path === '/api/households') return response([home()]);
+      if (path === balancePath('maple')) return response(paid ? balances() : balances({
+        aliceOwes: 725, aliceNet: -725,
+        debts: [{ debtorId: 'alice', creditorId: 'bob', currency: 'USD', amountCents: 725 }],
+      }));
+      if (path === '/api/households/maple/settlements' && options.method === 'POST') {
+        paid = true;
+        return response({ id: 'bd0f6a7b-7836-4851-a5ea-3542da3b287f' }, 201);
+      }
+    });
+    render(<App authClient={fakeAuth(sdkUser())} />);
+
+    const view = await screen.findByRole('region', { name: 'Household balances' });
+    await within(view).findByRole('button', { name: 'Mark paid (demo)' });
+    fireEvent.click(within(view).getByRole('button', { name: 'Mark paid (demo)' }));
+    expect(await within(view).findByText('Everyone is settled up.')).toBeInTheDocument();
+    expect(within(view).getByText('Simulated payment recorded. No money was transferred.')).toBeInTheDocument();
+    const call = api.mock.calls.find(([path, options]) => path === '/api/households/maple/settlements'
+      && options.method === 'POST');
+    expect(JSON.parse(call[1].body)).toEqual({ toUid: 'bob', currency: 'USD', amountCents: 725,
+      requestId: 'bd0f6a7b-7836-4851-a5ea-3542da3b287f' });
+  });
+
+  it('does not offer to mark another member’s debt as paid', async () => {
+    mockApi(path => path === '/api/households' ? response([home()])
+      : path === balancePath('maple') ? response(balances({ aliceOwed: 725, aliceNet: 725,
+        debts: [{ debtorId: 'bob', creditorId: 'alice', currency: 'USD', amountCents: 725 }] })) : undefined);
+    render(<App authClient={fakeAuth(sdkUser())} />);
+    const view = await screen.findByRole('region', { name: 'Household balances' });
+    await within(view).findByRole('listitem');
+    expect(within(view).queryByRole('button', { name: 'Mark paid (demo)' })).not.toBeInTheDocument();
+  });
+
+  it('reuses the payment request ID when retrying after a network failure', async () => {
+    vi.stubGlobal('crypto', { randomUUID: () => '71e7f7ca-cec0-42ad-91c1-f48552aad570' });
+    let attempts = 0;
+    const api = mockApi((path, options) => {
+      if (path === '/api/households') return response([home()]);
+      if (path === balancePath('maple')) return response(attempts > 1 ? balances() : balances({
+        aliceOwes: 200, aliceNet: -200,
+        debts: [{ debtorId: 'alice', creditorId: 'bob', currency: 'USD', amountCents: 200 }],
+      }));
+      if (path === '/api/households/maple/settlements' && options.method === 'POST') {
+        attempts += 1;
+        return attempts === 1 ? response({}, 503) : response({ id: '71e7f7ca-cec0-42ad-91c1-f48552aad570' }, 201);
+      }
+    });
+    render(<App authClient={fakeAuth(sdkUser())} />);
+    const view = await screen.findByRole('region', { name: 'Household balances' });
+    fireEvent.click(await within(view).findByRole('button', { name: 'Mark paid (demo)' }));
+    expect(await within(view).findByText('We could not record the simulated payment. Please try again.')).toBeInTheDocument();
+    fireEvent.click(within(view).getByRole('button', { name: 'Mark paid (demo)' }));
+    expect(await within(view).findByText('Everyone is settled up.')).toBeInTheDocument();
+    const bodies = api.mock.calls.filter(([path]) => path === '/api/households/maple/settlements')
+      .map(([, options]) => JSON.parse(options.body));
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0].requestId).toBe(bodies[1].requestId);
   });
 });

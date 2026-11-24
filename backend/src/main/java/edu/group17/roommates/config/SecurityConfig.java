@@ -27,6 +27,7 @@ public class SecurityConfig {
                         "/api/households/*/balances").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households/*/expenses").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/households/*/settlements").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/households/*/invitations", "/api/invitations/redeem").authenticated()
                 .anyRequest().denyAll())
                 .build();

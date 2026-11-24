@@ -108,11 +108,26 @@ public class FirestoreExpenseStore implements ExpenseStore {
         return List.copyOf(expenses);
     }
 
-    private Expense toExpense(DocumentSnapshot document) {
+    public List<Expense> listAllForBalances(Transaction transaction, String householdId) {
+        var documents = await(transaction.get(firestore.collection("households").document(householdId)
+                .collection("expenses"))).getDocuments();
+        var expenses = new ArrayList<Expense>(documents.size());
+        for (var document : documents) {
+            if (!householdId.equals(document.getString("householdId"))) throw hidden();
+            expenses.add(toExpense(document, transaction));
+        }
+        return List.copyOf(expenses);
+    }
+
+    private Expense toExpense(DocumentSnapshot document) { return toExpense(document, null); }
+
+    private Expense toExpense(DocumentSnapshot document, Transaction transaction) {
         String householdId = document.getString("householdId");
         String expenseId = document.getId();
         var shares = new LinkedHashMap<String, Long>();
-        var shareDocuments = await(document.getReference().collection("shares").get()).getDocuments();
+        var sharesQuery = document.getReference().collection("shares");
+        var shareDocuments = await(transaction == null ? sharesQuery.get() : transaction.get(sharesQuery))
+                .getDocuments();
         for (var share : shareDocuments) {
             String participantId = share.getString("participantId");
             Long amountCents = share.getLong("amountCents");
