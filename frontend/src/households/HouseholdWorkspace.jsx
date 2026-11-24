@@ -6,6 +6,8 @@ import JoinHousehold from '../invitations/JoinHousehold.jsx';
 import ExpenseEntryForm from '../expenses/ExpenseEntryForm.jsx';
 import ExpenseHistory from '../expenses/ExpenseHistory.jsx';
 import HouseholdBalance from '../expenses/HouseholdBalance.jsx';
+import PaymentRequests from '../paymentRequests/PaymentRequests.jsx';
+import usePaymentRequests from '../paymentRequests/usePaymentRequests.js';
 
 function CreateHousehold() {
   const { create } = useHouseholds();
@@ -46,6 +48,7 @@ export default function HouseholdWorkspace() {
   const { user } = useAuth();
   const { households, selectedHousehold, selectedId, select, loading, error, refresh } = useHouseholds();
   const [expenseRefresh, setExpenseRefresh] = useState(0);
+  const paymentRequests = usePaymentRequests(selectedHousehold?.id);
   return <div className="workspace">
     <div className="workspace-heading"><div><p className="eyebrow">YOUR SHARED SPACE</p>
       <h1>Welcome, {user.displayName || user.email || 'housemate'}.</h1><p className="muted">A little less admin. A little more feeling at home.</p></div>
@@ -78,7 +81,10 @@ export default function HouseholdWorkspace() {
       {selectedHousehold && <HouseholdBalance key={`balances-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
       {selectedHousehold && <ExpenseEntryForm key={`expense-entry-${selectedHousehold.id}`} household={selectedHousehold}
         onSaved={() => setExpenseRefresh(version => version + 1)} />}
-      {selectedHousehold && <ExpenseHistory key={`expense-history-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh} />}
+      {selectedHousehold && <ExpenseHistory key={`expense-history-${selectedHousehold.id}`} household={selectedHousehold} refreshToken={expenseRefresh}
+        paymentRequests={paymentRequests.items} paymentRequestsLoading={paymentRequests.loading} onRequestCreated={paymentRequests.refresh} />}
+      {selectedHousehold && <PaymentRequests key={`requests-${selectedHousehold.id}`} household={selectedHousehold}
+        items={paymentRequests.items} loading={paymentRequests.loading} error={paymentRequests.error} onRefresh={paymentRequests.refresh} />}
       {selectedHousehold && <InvitationShare key={`invitation-${selectedHousehold.id}`} household={selectedHousehold} />}
       <JoinHousehold />
       <CreateHousehold />
