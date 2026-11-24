@@ -1,0 +1,461 @@
+{
+  "requirements": [
+    {
+      "id": "R01",
+      "description": "Exact equal splitting and deterministic cents",
+      "implemented": true
+    },
+    {
+      "id": "R02",
+      "description": "Exact custom allocation validation",
+      "implemented": true
+    },
+    {
+      "id": "R03",
+      "description": "Invalid expense input rejection",
+      "implemented": true
+    },
+    {
+      "id": "R04",
+      "description": "Verified identity and protected APIs",
+      "implemented": true
+    },
+    {
+      "id": "R05",
+      "description": "Household membership and resource isolation",
+      "implemented": true
+    },
+    {
+      "id": "R06",
+      "description": "Invitation and joining behavior",
+      "implemented": true
+    },
+    {
+      "id": "R07",
+      "description": "Expense history and detail",
+      "implemented": true
+    },
+    {
+      "id": "R08",
+      "description": "Who-owes-whom balances by currency",
+      "implemented": true
+    },
+    {
+      "id": "R09",
+      "description": "Account screens and restored session",
+      "implemented": true
+    },
+    {
+      "id": "R10",
+      "description": "Household/member/invitation browser flows",
+      "implemented": true
+    },
+    {
+      "id": "R11",
+      "description": "Expense entry browser flow",
+      "implemented": true
+    },
+    {
+      "id": "R12",
+      "description": "Household-scoped expense history UI",
+      "implemented": true
+    },
+    {
+      "id": "R13",
+      "description": "Payment requests and due dates",
+      "implemented": false
+    },
+    {
+      "id": "R14",
+      "description": "Mock payments and settlement writes",
+      "implemented": false
+    },
+    {
+      "id": "R15",
+      "description": "Gmail reminders and deduplication",
+      "implemented": false
+    },
+    {
+      "id": "R16",
+      "description": "Expense/request messaging",
+      "implemented": false
+    },
+    {
+      "id": "R17",
+      "description": "Monthly spending summaries",
+      "implemented": false
+    }
+  ],
+  "cases": [
+    {
+      "id": "BBU01",
+      "requirement": "R01",
+      "level": "unit",
+      "technique": "Equivalence partition",
+      "input": "Equal: 2400 cents / a,b,c",
+      "expected": "Each share is 800 cents; total 2400.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU02",
+      "requirement": "R01",
+      "level": "unit",
+      "technique": "Boundary/order",
+      "input": "Equal: 13 cents / z,a,m,b,c",
+      "expected": "Shares 3,3,3,2,2 in supplied participant order; total 13.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU03",
+      "requirement": "R01",
+      "level": "unit",
+      "technique": "Boundary",
+      "input": "Equal: 2 cents / four participants",
+      "expected": "Shares 1,1,0,0; no negative values.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU04",
+      "requirement": "R01",
+      "level": "unit",
+      "technique": "Boundary",
+      "input": "Single participant with 123 cents; then zero / two participants",
+      "expected": "123 to the sole participant; zero shares for the zero-valued component input.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU05",
+      "requirement": "R02",
+      "level": "unit",
+      "technique": "Equivalence partition",
+      "input": "Custom: total 1001, a=0, b=1001",
+      "expected": "Exact supplied allocation; no precision loss.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU06",
+      "requirement": "R02",
+      "level": "unit",
+      "technique": "Boundary",
+      "input": "Custom allocation 99 or 101 against total 100",
+      "expected": "Both invalid totals rejected.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU07",
+      "requirement": "R03",
+      "level": "unit",
+      "technique": "Invalid partitions",
+      "input": "Negative amount and empty participant collections",
+      "expected": "IllegalArgumentException; no allocation returned.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBU08",
+      "requirement": "R01",
+      "level": "unit",
+      "technique": "Numeric precision boundary",
+      "input": "9007199254740993 cents / two participants",
+      "expected": "4503599627370497 and 4503599627370496 exactly.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA01",
+      "requirement": "R04",
+      "level": "integration",
+      "technique": "Access decision table",
+      "input": "GET /api/health without credentials",
+      "expected": "HTTP 200 and status UP.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA02",
+      "requirement": "R04",
+      "level": "integration",
+      "technique": "Invalid partitions",
+      "input": "Read households without a token and with an invalid signed-token string",
+      "expected": "HTTP 401 for both.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA03",
+      "requirement": "R04",
+      "level": "integration",
+      "technique": "Identity spoofing",
+      "input": "GET /api/me with Alice token and Bob UID query",
+      "expected": "Response identity remains Alice.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA04",
+      "requirement": "R05",
+      "level": "integration",
+      "technique": "Boundary values",
+      "input": "Household names blank, 81 characters, and 80 characters",
+      "expected": "400, 400, and 201 respectively; accepted length 80.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA05",
+      "requirement": "R05",
+      "level": "integration",
+      "technique": "Access decision table",
+      "input": "Outsider reads/writes another household expenses and reads balances",
+      "expected": "All return 404; no financial data exposed.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA06",
+      "requirement": "R06",
+      "level": "integration",
+      "technique": "State transition",
+      "input": "Bob redeems a valid invitation twice",
+      "expected": "joined then already_member; membership count remains two.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA07",
+      "requirement": "R06",
+      "level": "integration",
+      "technique": "Invalid partitions",
+      "input": "Malformed code and well-formed nonexistent code",
+      "expected": "400 and 404 respectively.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA08",
+      "requirement": "R06",
+      "level": "integration",
+      "technique": "Concurrent state transition",
+      "input": "Four simultaneous redemptions by Bob",
+      "expected": "One joined, three already_member; all 200.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA09",
+      "requirement": "R01",
+      "level": "integration",
+      "technique": "Rounding boundary",
+      "input": "Create an equal 101-cent expense for Alice and Bob",
+      "expected": "201; stored public shares 51 and 50.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA10",
+      "requirement": "R02",
+      "level": "integration",
+      "technique": "Valid partition",
+      "input": "Create a 101-cent custom expense with 1/100 allocation",
+      "expected": "201; returned shares exactly 1 and 100.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA11",
+      "requirement": "R02",
+      "level": "integration",
+      "technique": "Boundary values",
+      "input": "Custom allocations 99/101 for a 100-cent expense",
+      "expected": "Both 400; household history remains empty.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA12",
+      "requirement": "R03",
+      "level": "integration",
+      "technique": "Representation boundary",
+      "input": "Expense amounts 0, -1 and 1.5 cents",
+      "expected": "All 400; no expense persisted. API requires positive integer cents, unlike zero-capable splitting component.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA13",
+      "requirement": "R03",
+      "level": "integration",
+      "technique": "Invalid partitions",
+      "input": "No participants or a participant outside the household",
+      "expected": "Both 400.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA14",
+      "requirement": "R03",
+      "level": "integration",
+      "technique": "Invalid partitions",
+      "input": "Impossible date, unknown category and lowercase currency",
+      "expected": "All 400.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA15",
+      "requirement": "R07",
+      "level": "integration",
+      "technique": "Round-trip consistency",
+      "input": "Create then GET an expense by its public ID",
+      "expected": "All returned public fields match.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA16",
+      "requirement": "R05",
+      "level": "integration",
+      "technique": "Resource substitution",
+      "input": "Use one household's expense ID beneath another household URL",
+      "expected": "404; no expense data exposed.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA17",
+      "requirement": "R07",
+      "level": "integration",
+      "technique": "Pagination boundary",
+      "input": "Three expenses on distinct dates; page limit two",
+      "expected": "Two then one, descending dates; no gap/duplicate; final cursor null.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA18",
+      "requirement": "R07",
+      "level": "integration",
+      "technique": "Boundary values",
+      "input": "History limits 0 and 51 (documented range 1..50)",
+      "expected": "Both 400.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA19",
+      "requirement": "R08",
+      "level": "integration",
+      "technique": "Sequence/netting",
+      "input": "Alice pays 101 split equally, then Bob pays 40 equally",
+      "expected": "Bob owes Alice 50 then 30 cents; household debits equal credits.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBA20",
+      "requirement": "R08",
+      "level": "integration",
+      "technique": "Currency partition",
+      "input": "USD 100 and EUR 200 expenses, two equal participants",
+      "expected": "Separate USD 50 and EUR 100 debts; no conversion or addition.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS01",
+      "requirement": "R09",
+      "level": "system",
+      "technique": "State transitions",
+      "input": "Sign in, reload, sign out in a browser",
+      "expected": "Signed-in identity restored after reload; protected workspace removed after sign-out.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS02",
+      "requirement": "R09",
+      "level": "system",
+      "technique": "Boundary/invalid input",
+      "input": "Registration with mismatched confirmation",
+      "expected": "Visible mismatch error and no authenticated workspace.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS03",
+      "requirement": "R09",
+      "level": "system",
+      "technique": "Invalid partition",
+      "input": "Sign in with wrong fixture password",
+      "expected": "Useful generic failure; password field cleared; no private details.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS04",
+      "requirement": "R10",
+      "level": "system",
+      "technique": "User workflow",
+      "input": "Create a household from the browser",
+      "expected": "Selected household shows the entered name and member username Alice.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS05",
+      "requirement": "R11",
+      "level": "system",
+      "technique": "Rounding boundary",
+      "input": "Browser adds USD 1.01 expense for two members",
+      "expected": "Visible saved notice; public expense API reports 101 cents with 50/51 shares.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS06",
+      "requirement": "R12",
+      "level": "system",
+      "technique": "State transitions",
+      "input": "Switch from a household containing a receipt to an empty household",
+      "expected": "Previous household receipt disappears.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    },
+    {
+      "id": "BBS07",
+      "requirement": "R10",
+      "level": "system",
+      "technique": "Two-user workflow",
+      "input": "Alice generates code in browser; Bob joins in another browser context",
+      "expected": "Bob sees joined household selected and a successful join notice.",
+      "author": "AI-assisted: OpenAI Codex/GPT",
+      "human_baseline": "Not yet supplied; AI-only comparison cannot be determined"
+    }
+  ],
+  "unexecuted": [
+    {
+      "id": "BBP01",
+      "requirement": "R06",
+      "input": "Redeem a code after its documented 48-hour lifetime",
+      "reason": "Long-running state unavailable in a bounded black-box run; no internal timestamp/clock mutation used."
+    },
+    {
+      "id": "BBP02",
+      "requirement": "R09",
+      "input": "Live Firebase registration, expired Google token, and revoked account",
+      "reason": "Identity provider is simulated in the isolated harness; no real cloud accounts/tokens are created."
+    },
+    {
+      "id": "BBP03",
+      "requirement": "R04",
+      "input": "Production deployment, browser compatibility, accessibility audit and load testing",
+      "reason": "Local Chromium functional run only; separate system/nonfunctional work remains."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "initial_run": "e718bb9755",
+  "initial_outcome": "25/35 passed; 6 API oracle failures and 4 browser harness failures",
+  "harness_issues_excluded_from_product_defects": [
+    {
+      "cases": ["BBS01", "BBS02", "BBS03"],
+      "issue": "Test-only Vite entry outside frontend could not resolve react-dom/client",
+      "resolution": "Add explicit test-only React and React DOM aliases to the frontend dependency installation; no application source change"
+    },
+    {
+      "cases": ["BBS05"],
+      "issue": "Generated locator requested Add expense but the rendered button is Save expense",
+      "resolution": "Correct locator from the captured public accessibility snapshot; expected financial oracle unchanged"
+    }
+  ],
+  "one_shot_setup_issue": "Firebase refused a nested config that referenced rules outside its project directory. Moving the test-only emulator config to repository-root firebase.blackbox.json fixed configuration scope without changing application code.",
+  "product_oracles": "Original expected 400/404 and integer-cent rejection expectations were retained; they were not changed to match observed product defects.",
+  "comparison_limit": "No human baseline was executed, so these harness repairs are evidence of AI maintenance work, not a measured disadvantage relative to humans."
+}
